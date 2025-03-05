@@ -1,0 +1,5 @@
+<p-dialog header="Add Book">
+    <input type="text" [(ngModel)]="book.title" placeholder="Title" />
+    <input type="text" [(ngModel)]="book.author" placeholder="Author" />
+    <button (click)="saveBook()">Save</button>
+  </p-dialog>
