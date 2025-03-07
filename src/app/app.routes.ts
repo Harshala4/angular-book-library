@@ -2,11 +2,25 @@ import { Routes } from '@angular/router';
 import { BookListComponent } from './book-list/book-list.component';
 import { BookFormComponent } from './book-form/book-form.component';
 import { CategorySelectorComponent } from './category-selector/category-selector.component';
+import { BookItemComponent } from './book-item/book-item.component';
 
 export const routes: Routes = [
   {
-    path: 'books',
-    component: BookListComponent,
+    path: '',
+    redirectTo: '/categories',
+    pathMatch: 'full',
+  },
+  {
+    path: 'categories',
+    component: CategorySelectorComponent,
+  },
+  { 
+    path: 'books/:category', 
+    component: BookListComponent 
+  },
+  { 
+    path: 'book/:id', 
+    component: BookItemComponent 
   },
   {
     path: 'add-book',
@@ -16,12 +30,9 @@ export const routes: Routes = [
     path: 'edit-book/:id',
     component: BookFormComponent,
   },
-  {
-    path:'category',
-    component:CategorySelectorComponent,
-  },
-  {
-    path: '**',
-    redirectTo: 'books',
-  },
+
+  // {
+  //   path: '**',
+  //   redirectTo: 'books',
+  // },
 ];

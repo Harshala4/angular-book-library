@@ -1,20 +1,131 @@
-<p-table [value]="(books$ | async) || []" [scrollable]="true" scrollHeight="550px" [tableStyle]="{ 'min-width': '50rem' }">
+<div class="card">
+  <p-toast></p-toast>
+
+  <p-toolbar styleClass="mb-6">
+    <ng-template pTemplate="start">
+      <p-button
+        label="Add"
+        icon="pi pi-plus"
+        class="mr-2"
+        (onClick)="openNew()"
+      />
+      <p-button
+        severity="danger"
+        label="Delete"
+        icon="pi pi-trash"
+        outlined
+        (onClick)="deleteSelectedBooks()"
+        [disabled]="!selectedBooks || !selectedBooks.length"
+      />
+    </ng-template>
+  </p-toolbar>
+
+  <!-- <p-table [value]="(books$ | async) || []" [scrollable]="true" scrollHeight="550px" [tableStyle]="{ 'min-width': '50rem' }">
     <ng-template pTemplate="header">
         <tr>
             <th>Book Name </th>
             <th>Author</th>
             <th>Year</th>
-            <th>Quantity</th>
-            <!-- <th>Price</th> -->
         </tr>
     </ng-template>
     <ng-template pTemplate="body" let-book>
         <tr>
-            
             <td>{{ book.title }}</td>
-            <td>{{ book.author_name[0] }}</td>
+            <td>{{ book.author_name }}</td>
             <td>{{ book.first_publish_year }}</td>
-            <td>{{ book.q }}</td>
         </tr>
     </ng-template>
-</p-table>
+</p-table> -->
+
+  <p-table
+    #dt
+    [value]="books"
+    [columns]="cols"
+    [globalFilterFields]="['name', 'author', 'category', 'status']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedBooks"
+    [rowHover]="true"
+    dataKey="title"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [scrollable]="true" scrollHeight="400px"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template pTemplate="caption">
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Manage Books</h5>
+        <p-iconfield>
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            (input)="onFilterGlobal($event)"
+            placeholder="Search..."
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
+        <!-- <th style="min-width: 16rem">Code</th> -->
+
+        <th *ngFor="let col of cols" style="min-width: 12rem">
+          {{ col.header }}
+        </th>
+        <th style="min-width: 12rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-books>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="books"></p-tableCheckbox>
+        </td>
+
+        <!-- <td *ngFor="let col of cols">
+          <ng-container [ngSwitch]="col.field">
+            <ng-container *ngSwitchCase="'author_key'">
+              {{ book.author_key?.[0] }}
+            </ng-container>
+            <ng-container *ngSwitchCase="'author_name'">
+              {{ book.author_name?.[0] }}
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              {{ book[col.field] }}
+            </ng-container>
+          </ng-container>
+        </td> -->
+
+        <td style="min-width: 12rem">{{ books.author_key?.[0] }}</td>
+        <td style="min-width: 12rem">{{ books.title }}</td>
+        <td style="min-width: 12rem">{{ books.author_name?.[0] }}</td>
+        <td style="min-width: 12rem">{{ books.first_publish_year }}</td>
+        <!-- <td style="min-width: 12rem">{{ books | json }}</td> -->
+
+        <td>
+          <p-button
+            icon="pi pi-pencil"
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="editBook(books)"
+          />
+          <p-button
+            icon="pi pi-trash"
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteBook(books)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #summary>
+      <div class="flex items-center justify-between">
+        In total there are {{ books ? books.length : 0 }} books.
+      </div>
+    </ng-template>
+  </p-table>
+  <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+</div>

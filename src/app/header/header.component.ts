@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { BookService } from '../services/book.service';
 import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
+import { CategoryService } from '../services/category.service';
 
 @Component({
   standalone: true,
@@ -28,11 +29,11 @@ export class HeaderComponent implements OnInit {
   categories: string[] = [];
   searchText: string = '';
 
-  constructor(private bookService: BookService, private router: Router) {}
+  constructor(private bookService: BookService, private router: Router,private categoryService:CategoryService) {}
 
   ngOnInit(): void {
     // Fetch book categories dynamically
-    this.bookService.getBookCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next:(data: { subjects: { name: string }[] }) => {
         if (data && data.subjects) {
           this.categories = [
