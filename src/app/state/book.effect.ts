@@ -42,7 +42,8 @@ export class BookEffects {
                 author_key: doc.author_key,
                 author_name: doc.author_name,
                 first_publish_year: doc.first_publish_year,
-                title: doc.title
+                title: doc.title,
+                inventoryStatus:'Available'
               }));
               localStorage.setItem('books', JSON.stringify(docs));
               return loadBooksSuccess({ books: docs });

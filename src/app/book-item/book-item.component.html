@@ -1,1 +1,29 @@
-<p>book-item works!</p>
+<!-- <div *ngIf="book">
+  <h2>{{ book.title }}</h2>
+  <p><strong>Author:</strong> {{ book.author_name?.[0] }}</p>
+  <p><strong>Year:</strong> {{ book.first_publish_year }}</p>
+  <p><strong>Author Key:</strong> {{ book.author_key?.[0] }}</p>
+  
+  <button (click)="onClose()">Close</button>
+</div> -->
+
+<p-dialog
+  [(visible)]="productDialog"
+  [style]="{ width: '450px' }"
+  header="Product Details"
+  [modal]="true"
+>
+  <ng-template #content>
+    <div *ngIf="book">
+      <h2>{{ book.title }}</h2>
+      <p><strong>Author:</strong> {{ book.author_name?.[0] }}</p>
+      <p><strong>Year:</strong> {{ book.first_publish_year }}</p>
+      <p><strong>Author Key:</strong> {{ book.author_key?.[0] }}</p>
+    </div>
+  </ng-template>
+
+  <ng-template #footer>
+    <p-button (click)="onClose()">Close</p-button>
+  </ng-template>
+</p-dialog>
+<p-confirmDialog [style]="{ width: '450px' }" />

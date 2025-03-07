@@ -41,13 +41,19 @@
     #dt
     [value]="books"
     [columns]="cols"
-    [globalFilterFields]="['name', 'author', 'category', 'status']"
+    [globalFilterFields]="[
+      'title',
+      'author_key',
+      'author_name',
+      'first_publish_year'
+    ]"
     [tableStyle]="{ 'min-width': '75rem' }"
     [(selection)]="selectedBooks"
     [rowHover]="true"
-    dataKey="title"
+    dataKey="author_key"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [scrollable]="true" scrollHeight="400px"
+    [scrollable]="true"
+    scrollHeight="400px"
     [showCurrentPageReport]="true"
   >
     <ng-template pTemplate="caption">
@@ -74,13 +80,17 @@
         <th *ngFor="let col of cols" style="min-width: 12rem">
           {{ col.header }}
         </th>
+        <th pSortableColumn="inventoryStatus" style="min-width: 12rem">
+          Status 
+          <p-sortIcon field="inventoryStatus" />
+        </th>
         <th style="min-width: 12rem">Actions</th>
       </tr>
     </ng-template>
-    <ng-template #body let-books>
+    <ng-template #body let-book>
       <tr>
         <td style="width: 3rem">
-          <p-tableCheckbox [value]="books"></p-tableCheckbox>
+          <p-tableCheckbox [value]="book"></p-tableCheckbox>
         </td>
 
         <!-- <td *ngFor="let col of cols">
@@ -97,13 +107,25 @@
           </ng-container>
         </td> -->
 
-        <td style="min-width: 12rem">{{ books.author_key?.[0] }}</td>
-        <td style="min-width: 12rem">{{ books.title }}</td>
-        <td style="min-width: 12rem">{{ books.author_name?.[0] }}</td>
-        <td style="min-width: 12rem">{{ books.first_publish_year }}</td>
-        <!-- <td style="min-width: 12rem">{{ books | json }}</td> -->
+        <td style="min-width: 12rem">{{ book.author_key?.[0] }}</td>
+        <td style="min-width: 12rem">{{ book.title }}</td>
+        <td style="min-width: 12rem">{{ book.author_name?.[0] }}</td>
+        <td style="min-width: 12rem">{{ book.first_publish_year }}</td>
+        <td style="min-width: 12rem">
+          <p-tag
+            [value]="book.inventoryStatus"
+            [severity]="getSeverity(book.inventoryStatus)"
+          ></p-tag>
+        </td>
 
         <td>
+          <p-button
+            label="Info"
+            variant="outlined"
+            severity="info"
+            [rounded]="true"
+            (click)="bookDetail(book)"
+          />
           <p-button
             icon="pi pi-pencil"
             class="mr-2"
@@ -111,6 +133,7 @@
             [outlined]="true"
             (click)="editBook(books)"
           />
+
           <p-button
             icon="pi pi-trash"
             severity="danger"
@@ -128,4 +151,10 @@
     </ng-template>
   </p-table>
   <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+
+  <app-book-item
+    *ngIf="selectedBook"
+    [book]="selectedBook"
+    (close)="closeBookDetail()"
+  ></app-book-item>
 </div>

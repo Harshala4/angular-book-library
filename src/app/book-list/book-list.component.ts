@@ -25,6 +25,7 @@ import { ToastModule } from 'primeng/toast';
 import { Tag } from 'primeng/tag';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Ripple } from 'primeng/ripple';
+import { BookItemComponent } from "../book-item/book-item.component";
 
 interface Column {
   field: string;
@@ -45,14 +46,16 @@ interface Column {
     ToolbarModule,
     InputTextModule,
     ToastModule,
-    Tag,
     ConfirmDialog,
-  ],
+    Tag,
+    BookItemComponent
+],
   providers: [MessageService, ConfirmationService],
   templateUrl: './book-list.component.html',
   styleUrl: './book-list.component.css',
 })
 export class BookListComponent implements OnInit {
+
   @ViewChild('dt') dt!: Table;
   cols!: Column[];
   selectedBooks: any[] = [];
@@ -62,7 +65,8 @@ export class BookListComponent implements OnInit {
   books$: Observable<any[]> = of([]);
   loading$!: Observable<boolean>;
   error$!: Observable<any>;
-
+  selectedBook: any = null;
+  
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private bookService = inject(BookService);
@@ -95,9 +99,8 @@ export class BookListComponent implements OnInit {
     ];
 
     this.statuses = [
-      { label: 'INSTOCK', value: 'instock' },
-      { label: 'LOWSTOCK', value: 'lowstock' },
-      { label: 'OUTOFSTOCK', value: 'outofstock' }
+      { label: 'AVAILABLE', value: 'available' },
+      { label: 'CHECKED OUT', value: 'outofstock' }
   ];
   }
 
@@ -105,15 +108,30 @@ export class BookListComponent implements OnInit {
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
       this.books = JSON.parse(storedBooks);
+      this.books = this.books.map(book => {
+        if (!book.inventoryStatus) {
+          book.inventoryStatus = 'Available'; // or 'InStock', etc.
+        }
+        return book;
+      });
       console.log("Books from local storage:", this.books);
       // console.log("hihi",this.books$);
       // console.log(this.books);
       this.store.dispatch(setBooksFromLocalStorage({ books: this.books }));
       this.cd.detectChanges();
+      
     } else {
       this.store.dispatch(loadBooks({ category: this.category }));
       // localStorage.setItem('books', JSON.stringify(this.books$));
       this.books$.subscribe((books) => {
+
+        books = books.map(book => {
+          if (!book.inventoryStatus) {
+            book.inventoryStatus = 'Available';
+          }
+          return book;
+        });
+
         this.books = books;
         console.log('Books from store:',books);
         localStorage.setItem('books', JSON.stringify(books));
@@ -127,9 +145,9 @@ export class BookListComponent implements OnInit {
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        const selectedIds = this.selectedBooks.map((book) => book.id);
+        const selectedIds = this.selectedBooks.map((book) => book.author_key);
         this.books = this.books.filter(
-          (book) => !selectedIds.includes(book.id)
+          (book) => !selectedIds.includes(book.author_key)
         );
         localStorage.setItem('books', JSON.stringify(this.books));
         this.selectedBooks = [];
@@ -152,11 +170,11 @@ export class BookListComponent implements OnInit {
 
   deleteBook(book: any) {
     this.confirmationService.confirm({
-      message: `Are you sure you want to delete ${book.name}?`,
+      message: `Are you sure you want to delete ${book.title}?`,
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.books = this.books.filter((b) => b.id !== book.id);
+        this.books = this.books.filter((b) => b.author_key !== book.author_key);
         localStorage.setItem('books', JSON.stringify(this.books));
         this.messageService.add({
           severity: 'success',
@@ -169,13 +187,13 @@ export class BookListComponent implements OnInit {
   }
   getSeverity(status: string) {
     switch (status) {
-      case 'INSTOCK':
+      case 'AVAILABLE':
         return 'success';
-      case 'LOWSTOCK':
-        return 'warn';
+      case 'OutOfStock':
+        return 'danger';
       default:
       // case 'OUTOFSTOCK':
-        return 'danger';
+        return 'info';
     }
   }
   onFilterGlobal(event:any){
@@ -183,4 +201,22 @@ export class BookListComponent implements OnInit {
       this.dt.filterGlobal(event.target.value,'contains');
     }
   }
+
+  updateBookStatus(book: any, newStatus: string) {
+    book.inventoryStatus = newStatus;
+  
+    // Then persist the updated array in localStorage
+    localStorage.setItem('books', JSON.stringify(this.books));
+  }
+
+  bookDetail(book: any) {
+    this.selectedBook=book;
+    console.log(this.selectedBook);
+    
+    }
+
+  closeBookDetail(){
+    this.selectedBook=null;
+  }
+  
 }
