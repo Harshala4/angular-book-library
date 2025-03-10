@@ -32,8 +32,12 @@ export class BookEffects {
         const storedBooks = localStorage.getItem('books');
         if (storedBooks) {
           const books = JSON.parse(storedBooks);
+          const updatedBooks = books.map((book: any) => ({
+            ...book,
+            inventoryStatus: book.inventoryStatus || 'available',
+          }));
           // You might filter by category if needed, or just return all
-          return of(loadBooksSuccess({ books }));
+          return of(loadBooksSuccess({ books:updatedBooks }));
         } else {
           // Fetch from API if local storage is empty
           return this.bookService.getBooksByCategory(action.category).pipe(
@@ -43,7 +47,8 @@ export class BookEffects {
                 author_name: doc.author_name,
                 first_publish_year: doc.first_publish_year,
                 title: doc.title,
-                inventoryStatus:'Available'
+                inventoryStatus:'available',
+                subtitle:doc.subtitle
               }));
               localStorage.setItem('books', JSON.stringify(docs));
               return loadBooksSuccess({ books: docs });

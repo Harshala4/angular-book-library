@@ -27,9 +27,13 @@ export const routes: Routes = [
     component: BookFormComponent,
   },
   {
-    path: 'edit-book/:id',
+    path: 'edit-book/:authorKey',
     component: BookFormComponent,
   },
+  {
+    path:'book-list',
+    component:BookListComponent
+  }
 
   // {
   //   path: '**',

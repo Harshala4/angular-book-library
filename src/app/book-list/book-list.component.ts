@@ -11,7 +11,11 @@ import {
 import { Table, TableModule } from 'primeng/table';
 import { BookService } from '../services/book.service';
 import { Store, select } from '@ngrx/store';
-import { loadBooks, loadBooksSuccess, setBooksFromLocalStorage } from '../state/book.actions';
+import {
+  loadBooks,
+  loadBooksSuccess,
+  setBooksFromLocalStorage,
+} from '../state/book.actions';
 import { map, Observable, of, take } from 'rxjs';
 import { BookState } from '../state/book.reducer';
 import { ButtonModule } from 'primeng/button';
@@ -25,7 +29,8 @@ import { ToastModule } from 'primeng/toast';
 import { Tag } from 'primeng/tag';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Ripple } from 'primeng/ripple';
-import { BookItemComponent } from "../book-item/book-item.component";
+import { BookItemComponent } from '../book-item/book-item.component';
+import { BookFormComponent } from '../book-form/book-form.component';
 
 interface Column {
   field: string;
@@ -48,14 +53,14 @@ interface Column {
     ToastModule,
     ConfirmDialog,
     Tag,
-    BookItemComponent
-],
+    BookItemComponent,
+    BookFormComponent,
+  ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './book-list.component.html',
   styleUrl: './book-list.component.css',
 })
 export class BookListComponent implements OnInit {
-
   @ViewChild('dt') dt!: Table;
   cols!: Column[];
   selectedBooks: any[] = [];
@@ -66,21 +71,24 @@ export class BookListComponent implements OnInit {
   loading$!: Observable<boolean>;
   error$!: Observable<any>;
   selectedBook: any = null;
-  
+  isEditMode: boolean = false;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private cd = inject(ChangeDetectorRef);
-  
+
+  displayDialog: boolean = false; // For Add Book dialog
+  editDialog: boolean = false; 
 
   constructor(private store: Store<{ books: BookState }>) {
     this.books$ = this.store.pipe(
       select((state) => state.books.books),
       map((books) => books ?? [])
     );
-    const data=this.books$;
+    const data = this.books$;
     console.log(this.books$);
   }
 
@@ -91,7 +99,7 @@ export class BookListComponent implements OnInit {
     // this.store.dispatch(loadBooks({ category: this.category }));
 
     this.cols = [
-      {field:'author_key', header:'Author Key'},
+      { field: 'author_key', header: 'Author Key' },
       { field: 'title', header: 'Title' },
       { field: 'author_name', header: 'Author Name' },
       { field: 'first_publish_year', header: 'Year' },
@@ -100,42 +108,42 @@ export class BookListComponent implements OnInit {
 
     this.statuses = [
       { label: 'AVAILABLE', value: 'available' },
-      { label: 'CHECKED OUT', value: 'outofstock' }
-  ];
+      { label: 'CHECKED OUT', value: 'Checked Out' },
+    ];
   }
 
-  localBooks():void {
+  localBooks(): void {
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
       this.books = JSON.parse(storedBooks);
-      this.books = this.books.map(book => {
+      this.books = this.books.map((book) => {
         if (!book.inventoryStatus) {
-          book.inventoryStatus = 'Available'; // or 'InStock', etc.
+          book.inventoryStatus = 'available'; // or 'InStock', etc.
         }
         return book;
       });
-      console.log("Books from local storage:", this.books);
+      console.log('Books from local storage:', this.books);
       // console.log("hihi",this.books$);
       // console.log(this.books);
       this.store.dispatch(setBooksFromLocalStorage({ books: this.books }));
       this.cd.detectChanges();
-      
+      this.updateTable();
     } else {
       this.store.dispatch(loadBooks({ category: this.category }));
       // localStorage.setItem('books', JSON.stringify(this.books$));
       this.books$.subscribe((books) => {
-
-        books = books.map(book => {
+        books = books.map((book) => {
           if (!book.inventoryStatus) {
-            book.inventoryStatus = 'Available';
+            book.inventoryStatus = 'available';
           }
           return book;
         });
 
         this.books = books;
-        console.log('Books from store:',books);
+        console.log('Books from store:', books);
         localStorage.setItem('books', JSON.stringify(books));
         this.cd.detectChanges();
+        this.updateTable();
       });
     }
   }
@@ -157,15 +165,9 @@ export class BookListComponent implements OnInit {
           detail: 'Books Deleted',
           life: 3000,
         });
+        this.updateTable();
       },
     });
-  }
-
-  openNew() {
-    this.router.navigate(['/add-book'], { state: { action: 'new' } });
-  }
-  editBook(book: any) {
-    this.router.navigate(['/edit-book'], { state: { action: 'edit', book } });
   }
 
   deleteBook(book: any) {
@@ -182,41 +184,82 @@ export class BookListComponent implements OnInit {
           detail: 'Book Deleted',
           life: 3000,
         });
+        this.updateTable();
       },
     });
   }
+
   getSeverity(status: string) {
     switch (status) {
-      case 'AVAILABLE':
+      case 'available':
         return 'success';
-      case 'OutOfStock':
+      case 'Checked Out':
         return 'danger';
       default:
-      // case 'OUTOFSTOCK':
+        // case 'OUTOFSTOCK':
         return 'info';
     }
   }
-  onFilterGlobal(event:any){
-    if(this.dt){
-      this.dt.filterGlobal(event.target.value,'contains');
+  onFilterGlobal(event: any) {
+    if (this.dt) {
+      this.dt.filterGlobal(event.target.value, 'contains');
     }
   }
 
   updateBookStatus(book: any, newStatus: string) {
     book.inventoryStatus = newStatus;
-  
+
     // Then persist the updated array in localStorage
     localStorage.setItem('books', JSON.stringify(this.books));
+    this.updateTable();
   }
 
   bookDetail(book: any) {
-    this.selectedBook=book;
+    this.selectedBook = book;
     console.log(this.selectedBook);
-    
-    }
+  }
 
-  closeBookDetail(){
-    this.selectedBook=null;
+  closeBookDetail() {
+    this.selectedBook = null;
+  }
+
+  openNew() {
+    this.selectedBook = null; // Reset form for new book
+    this.isEditMode = false;
+    this.displayDialog = true;
+    this.editDialog = false;
+    this.router.navigate(['/add-book'], { state: { action: 'new' } });
+  }
+  editBook(book: any) {
+    // this.selectedBook = { ...book }; // Clone the book object
+    this.isEditMode = true;
+    this.selectedBook = book;
+    // this.bookForm.patchValue(book); // Prepopulate the form with the book's data
+    this.editDialog = true;
+    this.displayDialog = false;
+    const authorKey = Array.isArray(book.author_key) ? book.author_key[0] : book.author_key;
+    this.router.navigate(['/edit-book',authorKey], { state: { action: 'edit', book } });
   }
   
+  saveBook(book: any) {
+    if (this.isEditMode) {
+      const index = this.books.findIndex(
+        (b) => b.author_key === book.author_key
+      );
+      if (index !== -1) {
+        this.books[index] = book;
+      }
+    } else {
+      this.books.push(book);
+    }
+    localStorage.setItem('books', JSON.stringify(this.books));
+    this.cd.detectChanges();
+    this.updateTable();
+  }
+
+  updateTable() {
+    // Create a shallow copy of the books array to trigger change detection
+    this.books = [...this.books];
+    this.cd.detectChanges();
+  }
 }
