@@ -4,67 +4,42 @@
     <button (click)="onSave()">Save</button>
   </p-dialog> -->
 
-
-<p-dialog header="Add Book" [modal]="true" [(visible)]="displayDialog" [style]="{ width: '25rem' }">
-    <form [formGroup]="bookForm" (ngSubmit)="onSave()">
-        <div class="p-fluid">
-            <div class="flex items-center gap-4 mb-4">
-              <label for="title" class="font-semibold w-24">Title</label>
-              <input pInputText id="title" type="text" pInputText formControlName="title"  />
-            </div>
-            <!-- <div class="p-field">
-                <label for="title">Sub-Title</label>
-                <input id="sub_title" type="text" pInputText formControlName="sub_title" />
-              </div> -->
-            <div class="p-field">
-              <label for="author_name">Author Name</label>
-              <input id="author_name" type="text" pInputText formControlName="author_name" />
-            </div>
-            <div class="p-field">
-              <label for="first_publish_year">Year</label>
-              <input id="first_publish_year" type="text" pInputText formControlName="first_publish_year" />
-            </div>
-            <div class="p-field">
-              <label for="author_key">Author Key</label>
-              <input id="author_key" type="text" pInputText formControlName="author_key" />
-            </div>
-            <div class="p-field">
-              <label for="inventoryStatus">Inventory Status</label>
-              <p-dropdown 
-                id="inventoryStatus" 
-                formControlName="inventoryStatus" 
-                [options]="inventoryOptions" 
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Select Status">
-              </p-dropdown>
-            </div>
-          </div>
-      
-          <div class="p-d-flex p-jc-end">
-            <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="onCancel()"></button>
-            <button pButton type="submit" label="Save" class="p-ml-2"></button>
-          </div>
-</form>
-</p-dialog>
-
-
 <p-dialog
-  header="Edit Book"
+  header="Add Book"
   [modal]="true"
-  [(visible)]="editDialog"
+  [(visible)]="displayDialog"
   [style]="{ width: '25rem' }"
-  [closable]="true"
+  (onHide)="onCancel()"
 >
-  <form [formGroup]="bookForm" (ngSubmit)="oneditSave()">
+  <form [formGroup]="bookForm" (ngSubmit)="onSave()">
     <div class="p-fluid">
+      <div class="flex items-center gap-4 mb-4">
+        <label for="title" class="font-semibold w-24">Title</label>
+        <input
+          pInputText
+          id="title"
+          type="text"
+          pInputText
+          formControlName="title"
+        />
+      </div>
       <div class="p-field">
-        <label for="title">Title</label>
-        <input id="title" type="text" pInputText formControlName="title" />
+        <label for="title">Sub-Title</label>
+        <input
+          id="subtitle"
+          type="text"
+          pInputText
+          formControlName="subtitle"
+        />
       </div>
       <div class="p-field">
         <label for="author_name">Author Name</label>
-        <input id="author_name" type="text" pInputText formControlName="author_name" />
+        <input
+          id="author_name"
+          type="text"
+          pInputText
+          formControlName="author_name"
+        />
       </div>
       <div class="p-field">
         <label for="first_publish_year">Year</label>
@@ -77,7 +52,89 @@
       </div>
       <div class="p-field">
         <label for="author_key">Author Key</label>
-        <input id="author_key" type="text" pInputText formControlName="author_key" />
+        <input
+          id="author_key"
+          type="text"
+          pInputText
+          formControlName="author_key"
+        />
+      </div>
+      <div class="p-field">
+        <label for="inventoryStatus">Inventory Status</label>
+        <p-dropdown
+          id="inventoryStatus"
+          formControlName="inventoryStatus"
+          [options]="inventoryOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select Status"
+        >
+        </p-dropdown>
+      </div>
+    </div>
+
+    <div class="p-d-flex p-jc-end">
+      <button
+        pButton
+        type="button"
+        label="Cancel"
+        class="p-button-secondary"
+        (click)="onCancel()"
+      ></button>
+      <button pButton type="submit" label="Save" class="p-ml-2"></button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  header="Edit Book"
+  [modal]="true"
+  [(visible)]="editDialog"
+  [style]="{ width: '25rem' }"
+  (onHide)="onCancel()"
+  [closable]="true"
+>
+  <form [formGroup]="bookForm" (ngSubmit)="oneditSave()">
+    <div class="p-fluid">
+      <div class="p-field">
+        <label for="title">Title</label>
+        <input id="title" type="text" pInputText formControlName="title" />
+      </div>
+      <div class="p-field">
+        <label for="subtitle">Sub-Title</label>
+        <input
+          id="subtitle"
+          type="text"
+          pInputText
+          formControlName="subtitle"
+        />
+      </div>
+      <div class="p-field">
+        <label for="author_name">Author Name</label>
+        <input
+          id="author_name"
+          type="text"
+          pInputText
+          formControlName="author_name"
+        />
+      </div>
+      <div class="p-field">
+        <label for="first_publish_year">Year</label>
+        <input
+          id="first_publish_year"
+          type="text"
+          pInputText
+          formControlName="first_publish_year"
+        />
+      </div>
+      <div class="p-field">
+        <label for="author_key">Author Key</label>
+        <input
+          id="author_key"
+          type="text"
+          pInputText
+          formControlName="author_key"
+        />
       </div>
       <div class="p-field">
         <label for="inventoryStatus">Inventory Status</label>
@@ -95,7 +152,13 @@
     </div>
 
     <div class="p-d-flex p-jc-end">
-      <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="onCancel()"></button>
+      <button
+        pButton
+        type="button"
+        label="Cancel"
+        class="p-button-secondary"
+        (click)="onCancel()"
+      ></button>
       <button pButton type="submit" label="Save" class="p-ml-2"></button>
     </div>
   </form>

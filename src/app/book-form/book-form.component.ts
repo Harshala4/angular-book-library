@@ -69,7 +69,7 @@ export class BookFormComponent implements OnInit {
       ],
       author_key: [this.book?.author_key || '', Validators.required],
       inventoryStatus: [this.book?.inventoryStatus || 'available'],
-      subtitle: [''],
+      subtitle: [this.book?.subtitle||''],
     });
   }
 

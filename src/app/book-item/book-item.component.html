@@ -12,6 +12,7 @@
   [style]="{ width: '450px' }"
   header="Product Details"
   [modal]="true"
+  (onHide)="onClose()"
 >
   <ng-template #content>
     <div *ngIf="book">

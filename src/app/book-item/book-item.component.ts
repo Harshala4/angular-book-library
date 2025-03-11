@@ -17,6 +17,7 @@ export class BookItemComponent {
   
   
   onClose() {
+    this.productDialog = false;
     this.close.emit();
   }
 }

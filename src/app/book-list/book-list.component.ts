@@ -81,7 +81,7 @@ export class BookListComponent implements OnInit {
   private cd = inject(ChangeDetectorRef);
 
   displayDialog: boolean = false; // For Add Book dialog
-  editDialog: boolean = false; 
+  editDialog: boolean = false;
 
   constructor(private store: Store<{ books: BookState }>) {
     this.books$ = this.store.pipe(
@@ -94,8 +94,9 @@ export class BookListComponent implements OnInit {
 
   ngOnInit(): void {
     this.category = this.route.snapshot.paramMap.get('category')!;
-    console.log("Category:",this.category);
+    console.log('Category:', this.category);
     this.localBooks();
+    this.calculateBorrowedTrends();
 
     // this.store.dispatch(loadBooks({ category: this.category }));
 
@@ -158,7 +159,10 @@ export class BookListComponent implements OnInit {
         this.books = this.books.filter(
           (book) => !selectedIds.includes(book.author_key)
         );
-        localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
+        localStorage.setItem(
+          `books_${this.category}`,
+          JSON.stringify(this.books)
+        );
         this.selectedBooks = [];
         this.messageService.add({
           severity: 'success',
@@ -178,7 +182,10 @@ export class BookListComponent implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.books = this.books.filter((b) => b.author_key !== book.author_key);
-        localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
+        localStorage.setItem(
+          `books_${this.category}`,
+          JSON.stringify(this.books)
+        );
         this.messageService.add({
           severity: 'success',
           summary: 'Successful',
@@ -229,7 +236,9 @@ export class BookListComponent implements OnInit {
     this.isEditMode = false;
     this.displayDialog = true;
     this.editDialog = false;
-    this.router.navigate(['/add-book'], { state: { action: 'new' , category: this.category} });
+    this.router.navigate(['/add-book'], {
+      state: { action: 'new', category: this.category },
+    });
   }
   editBook(book: any) {
     // this.selectedBook = { ...book }; // Clone the book object
@@ -238,10 +247,14 @@ export class BookListComponent implements OnInit {
     // this.bookForm.patchValue(book); // Prepopulate the form with the book's data
     this.editDialog = true;
     this.displayDialog = false;
-    const authorKey = Array.isArray(book.author_key) ? book.author_key[0] : book.author_key;
-    this.router.navigate(['/edit-book',authorKey], { state: { action: 'edit', book, category: this.category } });
+    const authorKey = Array.isArray(book.author_key)
+      ? book.author_key[0]
+      : book.author_key;
+    this.router.navigate(['/edit-book', authorKey], {
+      state: { action: 'edit', book, category: this.category },
+    });
   }
-  
+
   saveBook(book: any) {
     if (this.isEditMode) {
       const index = this.books.findIndex(
@@ -264,7 +277,32 @@ export class BookListComponent implements OnInit {
     this.cd.detectChanges();
   }
 
-  onChange(){
-    this.router.navigate(['\categories'])
+  onChange() {
+    this.router.navigate(['categories']);
+  }
+
+  borrowedBooksByCategory: { [key: string]: number } = {};
+
+  calculateBorrowedTrends() {
+    const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+
+    this.borrowedBooksByCategory = categories.reduce(
+      (acc: any, category: string) => {
+        const books = JSON.parse(
+          localStorage.getItem(`books_${category}`) || '[]'
+        );
+        const borrowedCount = books.filter(
+          (b: any) => b.inventoryStatus === 'Checked Out'
+        ).length;
+        acc[category] = borrowedCount;
+        return acc;
+      },
+      {}
+    );
+
+    localStorage.setItem(
+      'borrowed_trends',
+      JSON.stringify(this.borrowedBooksByCategory)
+    );
   }
 }
