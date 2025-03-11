@@ -11,6 +11,7 @@ import { AppConfigService } from '../../services/appconfig.service';
 import { ChartModule } from 'primeng/chart';
 import { Store } from '@ngrx/store';
 import { BookListComponent } from '../../book-list/book-list.component';
+import { HttpClient } from '@angular/common/http';
 
 interface Book {
   title: string;
@@ -38,7 +39,8 @@ export class CatChartComponent implements OnInit {
 
   constructor(
     private cd: ChangeDetectorRef,
-    private store: Store<{ books: any[] }>
+    private store: Store<{ books: any[] }>,
+    private http: HttpClient
   ) {}
 
   themeEffect = effect(() => {
@@ -58,76 +60,134 @@ export class CatChartComponent implements OnInit {
     }
   }
 
-  loadBooksPerCategory() {
-    // 1️⃣ Fetch books from local storage
-    let books: any[] = [];
-    for (let key in localStorage) {
-      if (key.startsWith('books_')) {
-        const category = key.replace('books_', '');
-        const bookList = JSON.parse(localStorage.getItem(key) || '[]');
-        books.push({ category, count: bookList.length });
-      }
-    }
+  // loadBooksPerCategory() {
+  //   // 1️⃣ Fetch books from local storage
+  //   let books: any[] = [];
+  //   for (let key in localStorage) {
+  //     if (key.startsWith('books_')) {
+  //       const category = key.replace('books_', '');
+  //       const bookList = JSON.parse(localStorage.getItem(key) || '[]');
+  //       books.push({ category, count: bookList.length });
+  //     }
+  //   }
 
-    // 2️⃣ Extract categories and counts
-    const categories = books.map((b) => b.category);
-    const counts = books.map((b) => b.count);
+  //   // 2️⃣ Extract categories and counts
+  //   const categories = books.map((b) => b.category);
+  //   const counts = books.map((b) => b.count);
 
-    // 3️⃣ Define chart colors
-    const colors = [
-      'rgba(249, 115, 22, 0.2)',
-      'rgba(6, 182, 212, 0.2)',
-      'rgb(107, 114, 128, 0.2)',
-      'rgba(139, 92, 246, 0.2)',
-    ];
+  //   // 3️⃣ Define chart colors
+  //   const colors = [
+  //     'rgba(249, 115, 22, 0.2)',
+  //     'rgba(6, 182, 212, 0.2)',
+  //     'rgb(107, 114, 128, 0.2)',
+  //     'rgba(139, 92, 246, 0.2)',
+  //   ];
 
-    // 4️⃣ Set Chart Data
-    const documentStyle = getComputedStyle(document.documentElement);
-    const textColor = documentStyle.getPropertyValue('--p-text-color');
-    const textColorSecondary = documentStyle.getPropertyValue(
-      '--p-text-muted-color'
-    );
-    const surfaceBorder = documentStyle.getPropertyValue(
-      '--p-content-border-color'
-    );
+  //   // 4️⃣ Set Chart Data
+  //   const documentStyle = getComputedStyle(document.documentElement);
+  //   const textColor = documentStyle.getPropertyValue('--p-text-color');
+  //   const textColorSecondary = documentStyle.getPropertyValue(
+  //     '--p-text-muted-color'
+  //   );
+  //   const surfaceBorder = documentStyle.getPropertyValue(
+  //     '--p-content-border-color'
+  //   );
 
-    this.basicData = {
-      labels: categories, // Dynamic categories from localStorage
-      datasets: [
-        {
-          label: 'Books per Category',
-          data: counts, // Book counts
-          backgroundColor: colors.slice(0, categories.length),
-          borderColor: colors
-            .slice(0, categories.length)
-            .map((color) => color.replace('0.2', '1')),
-          borderWidth: 1,
-        },
-      ],
-    };
+  //   this.basicData = {
+  //     labels: categories, // Dynamic categories from localStorage
+  //     datasets: [
+  //       {
+  //         label: 'Books per Category',
+  //         data: counts, // Book counts
+  //         backgroundColor: colors.slice(0, categories.length),
+  //         borderColor: colors
+  //           .slice(0, categories.length)
+  //           .map((color) => color.replace('0.2', '1')),
+  //         borderWidth: 1,
+  //       },
+  //     ],
+  //   };
 
-    this.basicOptions = {
+  //   this.basicOptions = {
       
-      plugins: {
-        legend: {
-          labels: { color: textColor },
-        },
-      },
-      scales: {
-        x: {
-          ticks: { color: textColorSecondary },
-          grid: { color: surfaceBorder },
-        },
-        y: {
-          beginAtZero: true,
-          ticks: { color: textColorSecondary },
-          grid: { color: surfaceBorder },
-        },
-      },
-    };
+  //     plugins: {
+  //       legend: {
+  //         labels: { color: textColor },
+  //       },
+  //     },
+  //     scales: {
+  //       x: {
+  //         ticks: { color: textColorSecondary },
+  //         grid: { color: surfaceBorder },
+  //       },
+  //       y: {
+  //         beginAtZero: true,
+  //         ticks: { color: textColorSecondary },
+  //         grid: { color: surfaceBorder },
+  //       },
+  //     },
+  //   };
 
-    this.cd.markForCheck();
+  //   this.cd.markForCheck();
+  // }
+  loadBooksPerCategory() {
+    this.http.get<{ categories: string[] }>('/assets/categories.json').subscribe(
+      (data) => {
+        const categoriesJson = data.categories; // Extract array from JSON
+        let books: any[] = [];
+  
+        categoriesJson.forEach((category: string) => {
+          const key = `books_${category}`;
+          const bookList = JSON.parse(localStorage.getItem(key) || '[]');
+          const bookCount = bookList.length > 0 ? bookList.length : 100; // Default to 100 if no data
+  
+          books.push({ category, count: bookCount });
+        });
+  
+        // Extract categories and counts
+        const categories = books.map((b) => b.category);
+        const counts = books.map((b) => b.count);
+  
+        // Define chart colors
+        const colors = [
+          'rgba(249, 115, 22, 0.2)',
+          'rgba(6, 182, 212, 0.2)',
+          'rgb(107, 114, 128, 0.2)',
+          'rgba(139, 92, 246, 0.2)',
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+        ];
+  
+        // Get Theme Colors
+        const documentStyle = getComputedStyle(document.documentElement);
+        const textColor = documentStyle.getPropertyValue('--p-text-color');
+        const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
+        const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
+  
+        // Assign Chart Data
+        this.basicData = {
+          labels: categories,
+          datasets: [
+            {
+              label: 'Books per Category',
+              data: counts,
+              backgroundColor: colors.slice(0, categories.length),
+              borderColor: colors.slice(0, categories.length).map((color) => color.replace('0.2', '1')),
+              borderWidth: 1,
+            },
+          ],
+        };
+  
+        this.cd.markForCheck();
+      },
+      (error) => console.error('Error loading categories:', error)
+    );
   }
+  
 
   loadBorrowedTrends() {
     if (isPlatformBrowser(this.platformId)) {
