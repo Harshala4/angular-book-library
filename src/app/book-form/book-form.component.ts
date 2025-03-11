@@ -40,6 +40,7 @@ export class BookFormComponent implements OnInit {
 
   bookForm!: FormGroup;
   authorKey: string | null = null;
+  category: string | null = null;
 
   inventoryOptions = [
     { label: 'AVAILABLE', value: 'available' },
@@ -78,9 +79,11 @@ export class BookFormComponent implements OnInit {
     // }
 
     this.authorKey = this.route.snapshot.paramMap.get('authorKey');
+    this.category = this.route.snapshot.paramMap.get('category')|| history.state.category;
     console.log('Author Key', this.authorKey);
-    if (this.authorKey) {
-      const storedBooks = localStorage.getItem('books');
+    console.log('Category', this.category);
+    if (this.authorKey && this.category) {
+      const storedBooks = localStorage.getItem(`books_${this.category}`);
       console.log(storedBooks);
       if (storedBooks) {
         const books = JSON.parse(storedBooks);
@@ -110,16 +113,19 @@ export class BookFormComponent implements OnInit {
       this.save.emit(this.bookForm.value);
       const newBook = this.bookForm.value;
       console.log('Saving Book:', this.bookForm.value);
+      
+      newBook.category = this.category;
+
       newBook.author_name = [newBook.author_name];
       newBook.author_key = [newBook.author_key];
-      const storedBooks = localStorage.getItem('books');
+      const storedBooks = localStorage.getItem(`books_${this.category}`);
 
       let books = storedBooks ? JSON.parse(storedBooks) : [];
       books.push(newBook);
-      localStorage.setItem('books', JSON.stringify(books));
+      localStorage.setItem(`books_${this.category}`, JSON.stringify(books));
       this.store.dispatch(loadBooks({ category: newBook.category }));
 
-      this.router.navigate(['/book-list']);
+      this.router.navigate(['/book-list',{ category: this.category }]);
     }
   }
 
@@ -142,12 +148,13 @@ export class BookFormComponent implements OnInit {
         updatedBook.inventoryStatus = updatedBook.inventoryStatus.value;
       }
 
+      updatedBook.category = this.category;
       // updatedBook.author_key = Array.isArray(updatedBook.author_key)
       //   ? updatedBook.author_key[0]
       //   : updatedBook.author_key;
 
       // Update localStorage with the new/edited book
-      const storedBooks = localStorage.getItem('books');
+      const storedBooks = localStorage.getItem(`books_${this.category}`);
       let books = storedBooks ? JSON.parse(storedBooks) : [];
 
       // If editing, replace existing; otherwise push
@@ -169,11 +176,11 @@ export class BookFormComponent implements OnInit {
         books.push(updatedBook); // Add
       }
 
-      localStorage.setItem('books', JSON.stringify(books));
+      localStorage.setItem(`books_${this.category}`, JSON.stringify(books));
 
       // Close dialog and navigate back to list
       this.editDialog = false;
-      this.router.navigate(['/book-list']);
+      this.router.navigate(['/book-list',{ category: this.category }]);
     }
   }
 
@@ -182,6 +189,6 @@ export class BookFormComponent implements OnInit {
     this.editDialog = false;
     this.submitted = false;
     this.cancel.emit();
-    this.router.navigate(['/book-list']);
+    this.router.navigate(['/book-list',{ category: this.category }]);
   }
 }

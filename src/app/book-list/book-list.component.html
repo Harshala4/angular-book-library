@@ -17,6 +17,12 @@
         (onClick)="deleteSelectedBooks()"
         [disabled]="!selectedBooks || !selectedBooks.length"
       />
+      <p-button
+        severity="info"
+        label="Change Category"
+        outlined
+        (onClick)="onChange()"
+      />
     </ng-template>
   </p-toolbar>
 

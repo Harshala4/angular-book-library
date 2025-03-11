@@ -94,6 +94,7 @@ export class BookListComponent implements OnInit {
 
   ngOnInit(): void {
     this.category = this.route.snapshot.paramMap.get('category')!;
+    console.log("Category:",this.category);
     this.localBooks();
 
     // this.store.dispatch(loadBooks({ category: this.category }));
@@ -113,7 +114,7 @@ export class BookListComponent implements OnInit {
   }
 
   localBooks(): void {
-    const storedBooks = localStorage.getItem('books');
+    const storedBooks = localStorage.getItem(`books_${this.category}`);
     if (storedBooks) {
       this.books = JSON.parse(storedBooks);
       this.books = this.books.map((book) => {
@@ -141,7 +142,7 @@ export class BookListComponent implements OnInit {
 
         this.books = books;
         console.log('Books from store:', books);
-        localStorage.setItem('books', JSON.stringify(books));
+        localStorage.setItem(`books_${this.category}`, JSON.stringify(books));
         this.cd.detectChanges();
         this.updateTable();
       });
@@ -157,7 +158,7 @@ export class BookListComponent implements OnInit {
         this.books = this.books.filter(
           (book) => !selectedIds.includes(book.author_key)
         );
-        localStorage.setItem('books', JSON.stringify(this.books));
+        localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
         this.selectedBooks = [];
         this.messageService.add({
           severity: 'success',
@@ -177,7 +178,7 @@ export class BookListComponent implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.books = this.books.filter((b) => b.author_key !== book.author_key);
-        localStorage.setItem('books', JSON.stringify(this.books));
+        localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
         this.messageService.add({
           severity: 'success',
           summary: 'Successful',
@@ -210,7 +211,7 @@ export class BookListComponent implements OnInit {
     book.inventoryStatus = newStatus;
 
     // Then persist the updated array in localStorage
-    localStorage.setItem('books', JSON.stringify(this.books));
+    localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.updateTable();
   }
 
@@ -228,7 +229,7 @@ export class BookListComponent implements OnInit {
     this.isEditMode = false;
     this.displayDialog = true;
     this.editDialog = false;
-    this.router.navigate(['/add-book'], { state: { action: 'new' } });
+    this.router.navigate(['/add-book'], { state: { action: 'new' , category: this.category} });
   }
   editBook(book: any) {
     // this.selectedBook = { ...book }; // Clone the book object
@@ -238,7 +239,7 @@ export class BookListComponent implements OnInit {
     this.editDialog = true;
     this.displayDialog = false;
     const authorKey = Array.isArray(book.author_key) ? book.author_key[0] : book.author_key;
-    this.router.navigate(['/edit-book',authorKey], { state: { action: 'edit', book } });
+    this.router.navigate(['/edit-book',authorKey], { state: { action: 'edit', book, category: this.category } });
   }
   
   saveBook(book: any) {
@@ -252,7 +253,7 @@ export class BookListComponent implements OnInit {
     } else {
       this.books.push(book);
     }
-    localStorage.setItem('books', JSON.stringify(this.books));
+    localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.cd.detectChanges();
     this.updateTable();
   }
@@ -261,5 +262,9 @@ export class BookListComponent implements OnInit {
     // Create a shallow copy of the books array to trigger change detection
     this.books = [...this.books];
     this.cd.detectChanges();
+  }
+
+  onChange(){
+    this.router.navigate(['\categories'])
   }
 }

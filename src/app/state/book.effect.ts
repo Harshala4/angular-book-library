@@ -29,7 +29,7 @@ export class BookEffects {
       ofType(loadBooks),
       switchMap((action) => {
         // Check local storage first
-        const storedBooks = localStorage.getItem('books');
+        const storedBooks = localStorage.getItem(`books_${action.category}`);
         if (storedBooks) {
           const books = JSON.parse(storedBooks);
           const updatedBooks = books.map((book: any) => ({
@@ -50,7 +50,7 @@ export class BookEffects {
                 inventoryStatus:'available',
                 subtitle:doc.subtitle
               }));
-              localStorage.setItem('books', JSON.stringify(docs));
+              localStorage.setItem(`books_${action.category}`, JSON.stringify(docs));
               return loadBooksSuccess({ books: docs });
             }),
             catchError((error) => of(loadBooksFailure({ error })))
