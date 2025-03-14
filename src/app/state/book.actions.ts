@@ -7,7 +7,7 @@ export const loadBooks = createAction(
 );
 export const loadBooksSuccess = createAction(
   '[Book] Load Books Success',
-  props<{ books: any[] }>()
+  props<{ books: BookDoc[] }>()
 );
 export const loadBooksFailure = createAction(
   '[Book] Load Books Failure',

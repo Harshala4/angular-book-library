@@ -5,11 +5,10 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { HeaderComponent } from "./header/header.component";
-import { CategorySelectorComponent } from "./category-selector/category-selector.component";
 
 @Component({
   selector: 'app-root',
-  imports: [TableModule, RouterOutlet, ButtonModule, AutoCompleteModule, HeaderComponent, CategorySelectorComponent],
+  imports: [TableModule, RouterOutlet, ButtonModule, AutoCompleteModule, HeaderComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

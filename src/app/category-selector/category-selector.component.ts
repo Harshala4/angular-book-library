@@ -1,14 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { BookService } from '../services/book.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { DropdownModule } from 'primeng/dropdown';
-import { BookCategory, CategoryResponse } from '../models/book.model';
-// import {map} from 'rxjs';
 import { CategoryService } from '../services/category.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CatChartComponent } from './cat-chart/cat-chart.component';
+import { Category } from '../models/category.model';
 
 @Component({
   standalone: true,
@@ -24,14 +22,14 @@ export class CategorySelectorComponent implements OnInit {
   selectedCategory: string | null = null;
   
   ngOnInit(): void {
-    this.categoryService.getCategories().subscribe((data) => {
-      this.categories = data.categories.map((category: string) => ({
+    this.categoryService.getCategories().subscribe((categories: Category[]) => {
+      this.categories = categories.map((category: string) => ({
         label: category,
         value: category,
       }));
     }); // Extract categories from JSON
   }
-   onCategoryChange(event: any) {
+   onCategoryChange(event: { originalEvent: Event, value: string }) {
     this.selectedCategory = event.value;
     console.log("Selected Category:", this.selectedCategory);
     console.log("Event:", event.value); 

@@ -34,9 +34,4 @@ export const routes: Routes = [
     path:'book-list',
     component:BookListComponent
   }
-
-  // {
-  //   path: '**',
-  //   redirectTo: 'books',
-  // },
 ];

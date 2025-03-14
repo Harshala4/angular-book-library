@@ -10,14 +10,29 @@ import {
 import { AppConfigService } from '../../services/appconfig.service';
 import { ChartModule } from 'primeng/chart';
 import { Store } from '@ngrx/store';
-import { BookListComponent } from '../../book-list/book-list.component';
 import { HttpClient } from '@angular/common/http';
+import { ChartOptions } from 'chart.js';
 
 interface Book {
   title: string;
   author: string;
   category: string;
   inventoryStatus: 'available'|'Checked Out'; // Ensure this field exists
+}
+
+interface BorrowedTrends {
+  [category: string]: number;
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string[];
+    borderColor: string[];
+    borderWidth: number;
+  }[];
 }
 
 @Component({
@@ -29,17 +44,17 @@ interface Book {
 })
 
 export class CatChartComponent implements OnInit {
-  borrowedData: any;
-  borrowedOptions: any;
-  basicData: any;
-  basicOptions: any;
+  borrowedData: ChartData | null = null;
+  borrowedOptions: ChartOptions<'bar'> | null = null;
+  basicData: ChartData | null = null;
+  basicOptions: ChartOptions<'bar'> | null = null;
 
   platformId = inject(PLATFORM_ID);
   configService = inject(AppConfigService);
 
   constructor(
     private cd: ChangeDetectorRef,
-    private store: Store<{ books: any[] }>,
+    private store: Store<{ books: Book[] }>,
     private http: HttpClient
   ) {}
 
@@ -60,81 +75,11 @@ export class CatChartComponent implements OnInit {
     }
   }
 
-  // loadBooksPerCategory() {
-  //   // 1️⃣ Fetch books from local storage
-  //   let books: any[] = [];
-  //   for (let key in localStorage) {
-  //     if (key.startsWith('books_')) {
-  //       const category = key.replace('books_', '');
-  //       const bookList = JSON.parse(localStorage.getItem(key) || '[]');
-  //       books.push({ category, count: bookList.length });
-  //     }
-  //   }
-
-  //   // 2️⃣ Extract categories and counts
-  //   const categories = books.map((b) => b.category);
-  //   const counts = books.map((b) => b.count);
-
-  //   // 3️⃣ Define chart colors
-  //   const colors = [
-  //     'rgba(249, 115, 22, 0.2)',
-  //     'rgba(6, 182, 212, 0.2)',
-  //     'rgb(107, 114, 128, 0.2)',
-  //     'rgba(139, 92, 246, 0.2)',
-  //   ];
-
-  //   // 4️⃣ Set Chart Data
-  //   const documentStyle = getComputedStyle(document.documentElement);
-  //   const textColor = documentStyle.getPropertyValue('--p-text-color');
-  //   const textColorSecondary = documentStyle.getPropertyValue(
-  //     '--p-text-muted-color'
-  //   );
-  //   const surfaceBorder = documentStyle.getPropertyValue(
-  //     '--p-content-border-color'
-  //   );
-
-  //   this.basicData = {
-  //     labels: categories, // Dynamic categories from localStorage
-  //     datasets: [
-  //       {
-  //         label: 'Books per Category',
-  //         data: counts, // Book counts
-  //         backgroundColor: colors.slice(0, categories.length),
-  //         borderColor: colors
-  //           .slice(0, categories.length)
-  //           .map((color) => color.replace('0.2', '1')),
-  //         borderWidth: 1,
-  //       },
-  //     ],
-  //   };
-
-  //   this.basicOptions = {
-      
-  //     plugins: {
-  //       legend: {
-  //         labels: { color: textColor },
-  //       },
-  //     },
-  //     scales: {
-  //       x: {
-  //         ticks: { color: textColorSecondary },
-  //         grid: { color: surfaceBorder },
-  //       },
-  //       y: {
-  //         beginAtZero: true,
-  //         ticks: { color: textColorSecondary },
-  //         grid: { color: surfaceBorder },
-  //       },
-  //     },
-  //   };
-
-  //   this.cd.markForCheck();
-  // }
   loadBooksPerCategory() {
     this.http.get<{ categories: string[] }>('/assets/categories.json').subscribe(
       (data) => {
         const categoriesJson = data.categories; // Extract array from JSON
-        let books: any[] = [];
+        const books: { category: string; count: number }[] = [];
   
         categoriesJson.forEach((category: string) => {
           const key = `books_${category}`;
@@ -163,10 +108,11 @@ export class CatChartComponent implements OnInit {
         ];
   
         // Get Theme Colors
-        const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--p-text-color');
-        const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
-        const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
+        
+        // const documentStyle = getComputedStyle(document.documentElement);
+        // const textColor = documentStyle.getPropertyValue('--p-text-color');
+        // const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
+        // const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
   
         // Assign Chart Data
         this.basicData = {
@@ -191,9 +137,9 @@ export class CatChartComponent implements OnInit {
 
   loadBorrowedTrends() {
     if (isPlatformBrowser(this.platformId)) {
-        let borrowedTrends: { [category: string]: number } = {};
+        const borrowedTrends: BorrowedTrends = {};
 
-        for (let key in localStorage) {
+        for (const key in localStorage) {
             if (key.startsWith('books_')) {
                 const category = key.replace('books_', '');
                 const bookList:Book[] = JSON.parse(localStorage.getItem(key) || '[]');
@@ -215,8 +161,8 @@ export class CatChartComponent implements OnInit {
                 {
                     label: 'Borrowed Books',
                     data: borrowedCounts,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: ['rgba(255, 99, 132, 0.2)'],
+                    borderColor: ['rgba(255, 99, 132, 1)'],
                     borderWidth: 1,
                 },
             ],

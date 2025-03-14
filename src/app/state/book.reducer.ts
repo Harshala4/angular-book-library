@@ -1,9 +1,10 @@
 import { createReducer, on } from '@ngrx/store';
 import * as BookActions from './book.actions';
 import { loadBooks, loadBooksFailure, loadBooksSuccess } from './book.actions';
+import { BookDoc } from '../models/book.model';
 
 export interface BookState {
-  books: any[];
+  books: BookDoc[];
   loading: boolean;
   error: string | null;
 }
@@ -13,6 +14,10 @@ const initialState: BookState = {
   loading: false,
   error: null,
 };
+
+export interface AppState {
+  books: BookDoc[];
+}
 
 // export const bookReducer = createReducer(
 //   initialState,

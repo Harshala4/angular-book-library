@@ -1,8 +1,7 @@
 import { Injectable,inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { BookService } from '../services/book.service';
-import * as BookActions from './book.actions';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { of,switchMap } from 'rxjs';
 import { loadBooks, loadBooksSuccess, loadBooksFailure } from './book.actions';
 import { BookDoc } from '../models/book.model';
@@ -13,17 +12,6 @@ export class BookEffects {
    private actions$=inject(Actions);
    private bookService=inject(BookService); 
 
-  // loadBooks$ = createEffect(() =>
-  //   this.actions$.pipe(
-  //     ofType(BookActions.loadBooks),
-  //     mergeMap(action =>
-  //       this.bookService.getBooksByCategory(action.category).pipe(
-  //         map(books => BookActions.loadBooksSuccess({ books })),
-  //         catchError(error => of(BookActions.loadBooksFailure({ error: error.message })))
-  //       )
-  //     )
-  //   )
-  // );
   loadBooks$ = createEffect(() =>
     this.actions$.pipe(
       ofType(loadBooks),
@@ -32,7 +20,7 @@ export class BookEffects {
         const storedBooks = localStorage.getItem(`books_${action.category}`);
         if (storedBooks) {
           const books = JSON.parse(storedBooks);
-          const updatedBooks = books.map((book: any) => ({
+          const updatedBooks = books.map((book: BookDoc) => ({
             ...book,
             inventoryStatus: book.inventoryStatus || 'available',
           }));
@@ -42,7 +30,7 @@ export class BookEffects {
           // Fetch from API if local storage is empty
           return this.bookService.getBooksByCategory(action.category).pipe(
             map((response) => {
-              const docs: BookDoc[] = response.map((doc: any) => ({
+              const docs: BookDoc[] = response.map((doc: BookDoc) => ({
                 author_key: doc.author_key,
                 author_name: doc.author_name,
                 first_publish_year: doc.first_publish_year,

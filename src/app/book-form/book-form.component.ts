@@ -10,11 +10,12 @@ import { DialogModule } from 'primeng/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { NgIf } from '@angular/common';
 import { DropdownModule } from 'primeng/dropdown';
 import { BookService } from '../services/book.service';
 import { loadBooks } from '../state/book.actions';
 import { Store } from '@ngrx/store';
+import { BookDoc } from '../models/book.model';
+import { AppState } from '../state/book.reducer';
 
 @Component({
   standalone: true,
@@ -24,7 +25,6 @@ import { Store } from '@ngrx/store';
     DialogModule,
     ButtonModule,
     ConfirmDialogModule,
-    NgIf,
     DropdownModule,
     ReactiveFormsModule,
   ],
@@ -33,8 +33,8 @@ import { Store } from '@ngrx/store';
 })
 export class BookFormComponent implements OnInit {
   @Input() displayDialog: boolean = true;
-  @Input() book: any = null;
-  @Output() save = new EventEmitter<any>();
+  @Input() book: BookDoc|null = null;
+  @Output() save = new EventEmitter<BookDoc>();
   @Output() cancel = new EventEmitter<void>();
   @Input() editDialog: boolean = false;
 
@@ -57,7 +57,7 @@ export class BookFormComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private bookService: BookService,
-    private store: Store<any>
+    private store: Store<AppState>
   ) {
     this.bookForm = this.fb.group({
       title: [this.book?.title || '', Validators.required],
@@ -87,7 +87,7 @@ export class BookFormComponent implements OnInit {
       console.log(storedBooks);
       if (storedBooks) {
         const books = JSON.parse(storedBooks);
-        const foundBook = books.find((b: any) => {
+        const foundBook = books.find((b: BookDoc) => {
           const bookAuthorKey = Array.isArray(b.author_key)
             ? b.author_key[0]
             : b.author_key;
@@ -120,7 +120,7 @@ export class BookFormComponent implements OnInit {
       newBook.author_key = [newBook.author_key];
       const storedBooks = localStorage.getItem(`books_${this.category}`);
 
-      let books = storedBooks ? JSON.parse(storedBooks) : [];
+      const books = storedBooks ? JSON.parse(storedBooks) : [];
       books.push(newBook);
       localStorage.setItem(`books_${this.category}`, JSON.stringify(books));
       this.store.dispatch(loadBooks({ category: newBook.category }));
@@ -155,10 +155,10 @@ export class BookFormComponent implements OnInit {
 
       // Update localStorage with the new/edited book
       const storedBooks = localStorage.getItem(`books_${this.category}`);
-      let books = storedBooks ? JSON.parse(storedBooks) : [];
+      const books = storedBooks ? JSON.parse(storedBooks) : [];
 
       // If editing, replace existing; otherwise push
-      const index = books.findIndex((b: any) => {
+      const index = books.findIndex((b: BookDoc) => {
         const bookAuthorKey = Array.isArray(b.author_key)
           ? b.author_key[0]
           : b.author_key;

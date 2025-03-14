@@ -1,4 +1,4 @@
-import { CommonModule, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MenubarModule } from 'primeng/menubar';
 import { AvatarModule } from 'primeng/avatar';
@@ -9,6 +9,8 @@ import { BookService } from '../services/book.service';
 import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { CategoryService } from '../services/category.service';
+import { Category } from '../models/category.model';
+import { MenuItem } from 'primeng/api';
 
 @Component({
   standalone: true,
@@ -25,23 +27,22 @@ import { CategoryService } from '../services/category.service';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit {
-  items: any[] = [];
-  categories: string[] = [];
+  items: MenuItem[] = [];
+  categories: Category[] = [];
   searchText: string = '';
 
-  constructor(private bookService: BookService, private router: Router,private categoryService:CategoryService) {}
+  constructor(
+    private bookService: BookService,
+    private router: Router,
+    private categoryService: CategoryService
+  ) {}
 
   ngOnInit(): void {
     // Fetch book categories dynamically
     this.categoryService.getCategories().subscribe({
-      next:(data: { subjects: { name: string }[] }) => {
-        if (data && data.subjects) {
-          this.categories = [
-            ...new Set(data.subjects.map((subject: any) => subject.name)),
-          ];
-        } else {
-          this.categories = [];
-        }
+      next: (categories: Category[]) => {
+        this.categories = [...new Set(categories)];
+
         // Unique categories
 
         // Define menu items
@@ -61,11 +62,11 @@ export class HeaderComponent implements OnInit {
           },
         ];
       },
-      error:(err) => {
+      error: (err) => {
         console.error('Error fetching categories:', err);
         this.categories = []; // ✅ Prevents undefined errors
-      }
-  });
+      },
+    });
   }
 
   // Function to filter books based on category

@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import {
   ChangeDetectorRef,
   Component,
@@ -13,10 +12,9 @@ import { BookService } from '../services/book.service';
 import { Store, select } from '@ngrx/store';
 import {
   loadBooks,
-  loadBooksSuccess,
   setBooksFromLocalStorage,
 } from '../state/book.actions';
-import { map, Observable, of, take } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { BookState } from '../state/book.reducer';
 import { ButtonModule } from 'primeng/button';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -28,14 +26,20 @@ import { FormsModule } from '@angular/forms';
 import { ToastModule } from 'primeng/toast';
 import { Tag } from 'primeng/tag';
 import { ConfirmDialog } from 'primeng/confirmdialog';
-import { Ripple } from 'primeng/ripple';
 import { BookItemComponent } from '../book-item/book-item.component';
 import { BookFormComponent } from '../book-form/book-form.component';
+import { BookDoc } from '../models/book.model';
 
 interface Column {
   field: string;
   header: string;
 }
+
+interface Status {
+  label: string;
+  value: string;
+}
+
 
 @Component({
   standalone: true,
@@ -63,14 +67,15 @@ interface Column {
 export class BookListComponent implements OnInit {
   @ViewChild('dt') dt!: Table;
   cols!: Column[];
-  selectedBooks: any[] = [];
-  books: any[] = [];
+  selectedBooks: BookDoc[] = [];
+  books: BookDoc[] = [];
   category: string = '';
-  statuses!: any[];
-  books$: Observable<any[]> = of([]);
+  statuses: Status[]=[];
+  books$: Observable<BookDoc[]> = of([]);
   loading$!: Observable<boolean>;
-  error$!: Observable<any>;
-  selectedBook: any = null;
+  // error$!: Observable<any>;
+  error$!:unknown;
+  selectedBook: BookDoc | null = null;
   isEditMode: boolean = false;
 
   private route = inject(ActivatedRoute);
@@ -88,7 +93,6 @@ export class BookListComponent implements OnInit {
       select((state) => state.books.books),
       map((books) => books ?? [])
     );
-    const data = this.books$;
     console.log(this.books$);
   }
 
@@ -114,6 +118,11 @@ export class BookListComponent implements OnInit {
     ];
   }
 
+  /**
+   * 1. Method to read books from local storage.
+   * 2. Udpate the available status for each of the books.
+   */
+
   localBooks(): void {
     const storedBooks = localStorage.getItem(`books_${this.category}`);
     if (storedBooks) {
@@ -127,10 +136,16 @@ export class BookListComponent implements OnInit {
       console.log('Books from local storage:', this.books);
       // console.log("hihi",this.books$);
       // console.log(this.books);
+      // refactor the method name to store data in NgRx Store. storeBooks:
       this.store.dispatch(setBooksFromLocalStorage({ books: this.books }));
+
+      /** Explain the reasoning behind this. */
       this.cd.detectChanges();
       this.updateTable();
     } else {
+
+      /** Maintain a sequence of events. */
+
       this.store.dispatch(loadBooks({ category: this.category }));
       // localStorage.setItem('books', JSON.stringify(this.books$));
       this.books$.subscribe((books) => {
@@ -149,6 +164,10 @@ export class BookListComponent implements OnInit {
       });
     }
   }
+
+  /**
+   * Change Yes and No to actual actions.
+   */
   deleteSelectedBooks() {
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete the selected books?',
@@ -175,7 +194,7 @@ export class BookListComponent implements OnInit {
     });
   }
 
-  deleteBook(book: any) {
+  deleteBook(book: BookDoc) {
     this.confirmationService.confirm({
       message: `Are you sure you want to delete ${book.title}?`,
       header: 'Confirm',
@@ -208,13 +227,14 @@ export class BookListComponent implements OnInit {
         return 'info';
     }
   }
-  onFilterGlobal(event: any) {
+  onFilterGlobal(event: Event) {
     if (this.dt) {
-      this.dt.filterGlobal(event.target.value, 'contains');
+      const inputElement = event.target as HTMLInputElement;
+      this.dt.filterGlobal(inputElement.value, 'contains');
     }
   }
 
-  updateBookStatus(book: any, newStatus: string) {
+  updateBookStatus(book: BookDoc, newStatus: string) {
     book.inventoryStatus = newStatus;
 
     // Then persist the updated array in localStorage
@@ -222,7 +242,7 @@ export class BookListComponent implements OnInit {
     this.updateTable();
   }
 
-  bookDetail(book: any) {
+  bookDetail(book: BookDoc) {
     this.selectedBook = book;
     console.log(this.selectedBook);
   }
@@ -240,7 +260,7 @@ export class BookListComponent implements OnInit {
       state: { action: 'new', category: this.category },
     });
   }
-  editBook(book: any) {
+  editBook(book: BookDoc) {
     // this.selectedBook = { ...book }; // Clone the book object
     this.isEditMode = true;
     this.selectedBook = book;
@@ -255,7 +275,7 @@ export class BookListComponent implements OnInit {
     });
   }
 
-  saveBook(book: any) {
+  saveBook(book: BookDoc) {
     if (this.isEditMode) {
       const index = this.books.findIndex(
         (b) => b.author_key === book.author_key
@@ -287,12 +307,12 @@ export class BookListComponent implements OnInit {
     const categories = JSON.parse(localStorage.getItem('categories') || '[]');
 
     this.borrowedBooksByCategory = categories.reduce(
-      (acc: any, category: string) => {
+      (acc: { [key: string]: number }, category: string) => {
         const books = JSON.parse(
           localStorage.getItem(`books_${category}`) || '[]'
         );
         const borrowedCount = books.filter(
-          (b: any) => b.inventoryStatus === 'Checked Out'
+          (b: BookDoc) => b.inventoryStatus === 'Checked Out'
         ).length;
         acc[category] = borrowedCount;
         return acc;

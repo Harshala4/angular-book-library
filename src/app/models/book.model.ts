@@ -11,10 +11,13 @@ export interface CategoryResponse {
 // }
 
 export interface BookDoc {
-  author_key: string[];
-  author_name: string[];
-  first_publish_year: number;
+  author_key?: string[];
+  author_name?: string[];
+  first_publish_year?: number;
   title: string;
+  subtitle?: string;
+  inventoryStatus?: string; // Add this line
+  category?:string;
 }
 
 export interface BookApiResponse {
