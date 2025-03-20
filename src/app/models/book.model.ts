@@ -17,11 +17,11 @@ export interface BookDoc {
   title: string;
   subtitle?: string;
   inventoryStatus?: string; // Add this line
-  category?:string;
+  category?: string;
 }
 
 export interface BookApiResponse {
   numFound: number;
   start: number;
-  docs: BookDoc[];  // 'docs' is an array of Book
+  docs: BookDoc[]; // 'docs' is an array of Book
 }

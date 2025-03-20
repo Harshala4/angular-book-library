@@ -4,20 +4,26 @@ import { PrimeNG } from 'primeng/config';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-import { HeaderComponent } from "./header/header.component";
+import { HeaderComponent } from './header/header.component';
 
 @Component({
   selector: 'app-root',
-  imports: [TableModule, RouterOutlet, ButtonModule, AutoCompleteModule, HeaderComponent],
+  imports: [
+    TableModule,
+    RouterOutlet,
+    ButtonModule,
+    AutoCompleteModule,
+    HeaderComponent,
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit {
   title = 'book-library-management';
 
   constructor(private primeng: PrimeNG) {}
 
-    ngOnInit() {
-        this.primeng.ripple.set(true);
-    }
+  ngOnInit() {
+    this.primeng.ripple.set(true);
+  }
 }

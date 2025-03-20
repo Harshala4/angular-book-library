@@ -2,15 +2,16 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MenubarModule } from 'primeng/menubar';
 import { AvatarModule } from 'primeng/avatar';
-
+import { PanelMenuModule } from 'primeng/panelmenu';
 import { BadgeModule } from 'primeng/badge';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { BookService } from '../services/book.service';
 import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { CategoryService } from '../services/category.service';
 import { Category } from '../models/category.model';
 import { MenuItem } from 'primeng/api';
+import { CategorySelectorComponent } from '../category-selector/category-selector.component';
 
 @Component({
   standalone: true,
@@ -22,6 +23,9 @@ import { MenuItem } from 'primeng/api';
     CommonModule,
     ButtonModule,
     FormsModule,
+    PanelMenuModule,
+    RouterOutlet,
+    CategorySelectorComponent,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
@@ -30,6 +34,8 @@ export class HeaderComponent implements OnInit {
   items: MenuItem[] = [];
   categories: Category[] = [];
   searchText: string = '';
+
+  menuItems: MenuItem[] = [{ label: 'Dashboard', icon: 'pi pi-home' }];
 
   constructor(
     private bookService: BookService,

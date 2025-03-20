@@ -1,3 +1,10 @@
-div{
-    padding:5px;
+div {
+  padding: 5px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px; /* Adds spacing between buttons */
+  margin-top: 5rem; /* Adjust as needed */
 }

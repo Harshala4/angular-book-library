@@ -33,10 +33,17 @@ import { AppState } from '../state/book.reducer';
 })
 export class BookFormComponent implements OnInit {
   @Input() displayDialog: boolean = true;
-  @Input() book: BookDoc|null = null;
+  @Input() book: BookDoc | null = null;
   @Output() save = new EventEmitter<BookDoc>();
   @Output() cancel = new EventEmitter<void>();
   @Input() editDialog: boolean = false;
+  visible: boolean = false;
+
+  checkDialogVisibility(): void {
+    if (this.displayDialog || this.editDialog) {
+      this.visible = true;
+    }
+  }
 
   bookForm!: FormGroup;
   authorKey: string | null = null;
@@ -69,7 +76,7 @@ export class BookFormComponent implements OnInit {
       ],
       author_key: [this.book?.author_key || '', Validators.required],
       inventoryStatus: [this.book?.inventoryStatus || 'available'],
-      subtitle: [this.book?.subtitle||''],
+      subtitle: [this.book?.subtitle || ''],
     });
   }
 
@@ -77,9 +84,10 @@ export class BookFormComponent implements OnInit {
     // if (this.bookId) {
     //   this.bookForm.patchValue(this.book);
     // }
-
+    this.checkDialogVisibility();
     this.authorKey = this.route.snapshot.paramMap.get('authorKey');
-    this.category = this.route.snapshot.paramMap.get('category')|| history.state.category;
+    this.category =
+      this.route.snapshot.paramMap.get('category') || history.state.category;
     console.log('Author Key', this.authorKey);
     console.log('Category', this.category);
     if (this.authorKey && this.category) {
@@ -113,7 +121,7 @@ export class BookFormComponent implements OnInit {
       this.save.emit(this.bookForm.value);
       const newBook = this.bookForm.value;
       console.log('Saving Book:', this.bookForm.value);
-      
+
       newBook.category = this.category;
 
       newBook.author_name = [newBook.author_name];
@@ -125,7 +133,7 @@ export class BookFormComponent implements OnInit {
       localStorage.setItem(`books_${this.category}`, JSON.stringify(books));
       this.store.dispatch(loadBooks({ category: newBook.category }));
 
-      this.router.navigate(['/book-list',{ category: this.category }]);
+      this.router.navigate(['/book-list', { category: this.category }]);
     }
   }
 
@@ -180,15 +188,16 @@ export class BookFormComponent implements OnInit {
 
       // Close dialog and navigate back to list
       this.editDialog = false;
-      this.router.navigate(['/book-list',{ category: this.category }]);
+      this.router.navigate(['/book-list', { category: this.category }]);
     }
   }
 
   onCancel() {
+    this.visible = false;
     this.displayDialog = false;
     this.editDialog = false;
     this.submitted = false;
     this.cancel.emit();
-    this.router.navigate(['/book-list',{ category: this.category }]);
+    this.router.navigate(['/book-list', { category: this.category }]);
   }
 }

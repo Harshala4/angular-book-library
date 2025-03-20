@@ -14,13 +14,13 @@ export const routes: Routes = [
     path: 'categories',
     component: CategorySelectorComponent,
   },
-  { 
-    path: 'books/:category', 
-    component: BookListComponent 
+  {
+    path: 'books/:category',
+    component: BookListComponent,
   },
-  { 
-    path: 'book/:id', 
-    component: BookItemComponent 
+  {
+    path: 'book/:id',
+    component: BookItemComponent,
   },
   {
     path: 'add-book',
@@ -31,7 +31,7 @@ export const routes: Routes = [
     component: BookFormComponent,
   },
   {
-    path:'book-list',
-    component:BookListComponent
-  }
+    path: 'book-list',
+    component: BookListComponent,
+  },
 ];

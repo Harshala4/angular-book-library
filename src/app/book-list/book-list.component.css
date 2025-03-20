@@ -1,3 +1,21 @@
-p-button{
-    padding: 5px;
+.container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh; /* Ensure the container takes the full height of the viewport */
+}
+
+.sidebar {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto; /* Ensure the sidebar is scrollable if content overflows */
+}
+
+.content {
+  flex: 3;
+  padding: 1rem;
+  overflow-y: auto; /* Ensure the content area is scrollable if content overflows */
+}
+
+p-button {
+  padding: 5px;
 }

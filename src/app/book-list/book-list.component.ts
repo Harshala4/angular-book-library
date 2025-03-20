@@ -10,11 +10,8 @@ import {
 import { Table, TableModule } from 'primeng/table';
 import { BookService } from '../services/book.service';
 import { Store, select } from '@ngrx/store';
-import {
-  loadBooks,
-  setBooksFromLocalStorage,
-} from '../state/book.actions';
-import { map, Observable, of } from 'rxjs';
+import { loadBooks, setBooksFromLocalStorage } from '../state/book.actions';
+import { filter, map, Observable, of, take } from 'rxjs';
 import { BookState } from '../state/book.reducer';
 import { ButtonModule } from 'primeng/button';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -29,6 +26,7 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
 import { BookItemComponent } from '../book-item/book-item.component';
 import { BookFormComponent } from '../book-form/book-form.component';
 import { BookDoc } from '../models/book.model';
+import { CategorySelectorComponent } from '../category-selector/category-selector.component';
 
 interface Column {
   field: string;
@@ -39,7 +37,6 @@ interface Status {
   label: string;
   value: string;
 }
-
 
 @Component({
   standalone: true,
@@ -59,6 +56,7 @@ interface Status {
     Tag,
     BookItemComponent,
     BookFormComponent,
+    CategorySelectorComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './book-list.component.html',
@@ -70,11 +68,11 @@ export class BookListComponent implements OnInit {
   selectedBooks: BookDoc[] = [];
   books: BookDoc[] = [];
   category: string = '';
-  statuses: Status[]=[];
+  statuses: Status[] = [];
   books$: Observable<BookDoc[]> = of([]);
   loading$!: Observable<boolean>;
   // error$!: Observable<any>;
-  error$!:unknown;
+  error$!: unknown;
   selectedBook: BookDoc | null = null;
   isEditMode: boolean = false;
 
@@ -99,7 +97,7 @@ export class BookListComponent implements OnInit {
   ngOnInit(): void {
     this.category = this.route.snapshot.paramMap.get('category')!;
     console.log('Category:', this.category);
-    this.localBooks();
+    this.loadBooksFromLocalStorage();
     this.calculateBorrowedTrends();
 
     // this.store.dispatch(loadBooks({ category: this.category }));
@@ -123,19 +121,24 @@ export class BookListComponent implements OnInit {
    * 2. Udpate the available status for each of the books.
    */
 
-  localBooks(): void {
-    const storedBooks = localStorage.getItem(`books_${this.category}`);
+  loadBooksFromLocalStorage(): void {
+    // const storageKey = `books_${this.category}`;
+    const storedBooks = JSON.parse(
+      localStorage.getItem(`books_${this.category}`) || 'null'
+    );
     if (storedBooks) {
-      this.books = JSON.parse(storedBooks);
-      this.books = this.books.map((book) => {
+      // this.books = JSON.parse(storedBooks || 'null');
+      this.books = storedBooks.map((book: BookDoc) => {
         if (!book.inventoryStatus) {
           book.inventoryStatus = 'available'; // or 'InStock', etc.
         }
         return book;
       });
-      console.log('Books from local storage:', this.books);
-      // console.log("hihi",this.books$);
-      // console.log(this.books);
+      console.log(
+        'Books from local storage:',
+        `books_${this.category}`,
+        this.books
+      );
       // refactor the method name to store data in NgRx Store. storeBooks:
       this.store.dispatch(setBooksFromLocalStorage({ books: this.books }));
 
@@ -143,26 +146,58 @@ export class BookListComponent implements OnInit {
       this.cd.detectChanges();
       this.updateTable();
     } else {
-
       /** Maintain a sequence of events. */
-
+      this.books = [];
       this.store.dispatch(loadBooks({ category: this.category }));
       // localStorage.setItem('books', JSON.stringify(this.books$));
-      this.books$.subscribe((books) => {
-        books = books.map((book) => {
-          if (!book.inventoryStatus) {
-            book.inventoryStatus = 'available';
-          }
-          return book;
-        });
 
-        this.books = books;
-        console.log('Books from store:', books);
-        localStorage.setItem(`books_${this.category}`, JSON.stringify(books));
-        this.cd.detectChanges();
-        this.updateTable();
-      });
+      this.books$
+        .pipe(
+          take(2), // Ensure only one subscription execution per category change
+          filter(() => this.category !== '') // Prevent execution if category is null
+        )
+        .subscribe((books) => {
+          if (this.category) {
+            const scopedbooks = books.map((book) => ({
+              ...book,
+              inventoryStatus: book.inventoryStatus || 'available',
+            }));
+
+            // this.books$.subscribe((books) => {
+            //   // books = books.map((book) => {
+            //   if (this.category) {
+            //     // Ensure it's scoped to the selected category
+            //     const scopedbooks = books.map((book) => ({
+            //       ...book,
+            //       inventoryStatus: book.inventoryStatus || 'available',
+            //     }));
+            //     //   if (!book.inventoryStatus) {
+            //     //     book.inventoryStatus = 'available';
+            //     //   }
+            //     //   return book;
+            //     // });
+
+            this.books = scopedbooks;
+            console.log(
+              'Books from store:',
+              `books_${this.category}`,
+              scopedbooks
+            );
+            localStorage.setItem(
+              `books_${this.category}`,
+              JSON.stringify(scopedbooks)
+            );
+            this.cd.detectChanges();
+            this.updateTable();
+          }
+        });
     }
+  }
+
+  onCategoryChange(category: string) {
+    this.category = category;
+    this.loadBooksFromLocalStorage();
+    this.calculateBorrowedTrends();
   }
 
   /**
@@ -173,6 +208,10 @@ export class BookListComponent implements OnInit {
       message: 'Are you sure you want to delete the selected books?',
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-secondary',
       accept: () => {
         const selectedIds = this.selectedBooks.map((book) => book.author_key);
         this.books = this.books.filter(
@@ -190,6 +229,7 @@ export class BookListComponent implements OnInit {
           life: 3000,
         });
         this.updateTable();
+        this.calculateBorrowedTrends();
       },
     });
   }
@@ -199,6 +239,10 @@ export class BookListComponent implements OnInit {
       message: `Are you sure you want to delete ${book.title}?`,
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-secondary',
       accept: () => {
         this.books = this.books.filter((b) => b.author_key !== book.author_key);
         localStorage.setItem(
@@ -212,6 +256,7 @@ export class BookListComponent implements OnInit {
           life: 3000,
         });
         this.updateTable();
+        this.calculateBorrowedTrends();
       },
     });
   }
@@ -240,6 +285,24 @@ export class BookListComponent implements OnInit {
     // Then persist the updated array in localStorage
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.updateTable();
+    this.calculateBorrowedTrends();
+  }
+
+  toggleBookStatus(book: BookDoc) {
+    const updatedBook = {
+      ...book,
+      inventoryStatus:
+        book.inventoryStatus === 'available' ? 'Checked Out' : 'available',
+    };
+
+    const index = this.books.findIndex((b) => b.author_key === book.author_key);
+    if (index !== -1) {
+      this.books[index] = updatedBook;
+    }
+
+    localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
+    this.updateTable();
+    this.calculateBorrowedTrends();
   }
 
   bookDetail(book: BookDoc) {
@@ -289,6 +352,7 @@ export class BookListComponent implements OnInit {
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.cd.detectChanges();
     this.updateTable();
+    this.calculateBorrowedTrends();
   }
 
   updateTable() {
@@ -303,26 +367,44 @@ export class BookListComponent implements OnInit {
 
   borrowedBooksByCategory: { [key: string]: number } = {};
 
+  //   calculateBorrowedTrends() {
+  //     const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+  //     const allBorrowedTrends = JSON.parse(localStorage.getItem('borrowed_trends') || '{}');
+
+  //     this.borrowedBooksByCategory = categories.reduce(
+  //       (acc: { [key: string]: number }, category: string) => {
+  //         const books = JSON.parse(
+  //           localStorage.getItem(`books_${category}`) || '[]'
+  //         );
+  //         const borrowedCount = books.filter(
+  //           (b: BookDoc) => b.inventoryStatus === 'Checked Out'
+  //         ).length;
+  //         acc[category] = borrowedCount;
+  //         return acc;
+  //       },
+  //       {}
+  //     );
+
+  //     localStorage.setItem(
+  //       'borrowed_trends',
+  //       JSON.stringify(this.borrowedBooksByCategory)
+  //     );
+  //   }
+  // }
   calculateBorrowedTrends() {
     const categories = JSON.parse(localStorage.getItem('categories') || '[]');
-
-    this.borrowedBooksByCategory = categories.reduce(
-      (acc: { [key: string]: number }, category: string) => {
-        const books = JSON.parse(
-          localStorage.getItem(`books_${category}`) || '[]'
-        );
-        const borrowedCount = books.filter(
-          (b: BookDoc) => b.inventoryStatus === 'Checked Out'
-        ).length;
-        acc[category] = borrowedCount;
-        return acc;
-      },
-      {}
+    const allBorrowedTrends = JSON.parse(
+      localStorage.getItem('borrowed_trends') || '{}'
     );
 
-    localStorage.setItem(
-      'borrowed_trends',
-      JSON.stringify(this.borrowedBooksByCategory)
-    );
+    categories.forEach((category: string) => {
+      const storageKey = `books_${category}`;
+      const books = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      allBorrowedTrends[category] = books.filter(
+        (b: BookDoc) => b.inventoryStatus === 'Checked Out'
+      ).length;
+    });
+    this.borrowedBooksByCategory = allBorrowedTrends;
+    localStorage.setItem('borrowed_trends', JSON.stringify(allBorrowedTrends));
   }
 }

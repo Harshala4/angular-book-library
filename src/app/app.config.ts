@@ -30,7 +30,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(), // Required for API calls
     provideStore({ books: bookReducer }), // Provide NgRx Store globally
     provideEffects([BookEffects]), // Provide NgRx Effects for async actions
-    BookService
-
+    BookService,
   ],
 };

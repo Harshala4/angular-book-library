@@ -29,23 +29,23 @@ export const bookReducer = createReducer(
   on(loadBooks, (state) => ({
     ...state,
     loading: true,
-    error: null
+    error: null,
   })),
   on(loadBooksSuccess, (state, { books }) => ({
     ...state,
     books: books,
     loading: false,
-    error: null
+    error: null,
   })),
   on(loadBooksFailure, (state, { error }) => ({
     ...state,
     loading: false,
-    error
+    error,
   })),
   on(BookActions.setBooksFromLocalStorage, (state, { books }) => ({
     ...state,
     books,
     loading: false,
-    error: null
+    error: null,
   }))
 );

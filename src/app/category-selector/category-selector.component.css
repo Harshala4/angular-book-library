@@ -1,4 +1,7 @@
-div{
-    display: grid;
-    margin-bottom: 50px;
+div {
+  display: grid;
+  margin-bottom: 50px;
+}
+.chart-container {
+  margin-top: 50px; /* Adjust the value as needed to create the desired space */
 }

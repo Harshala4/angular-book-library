@@ -1,12 +1,3 @@
-<!-- <div *ngIf="book">
-  <h2>{{ book.title }}</h2>
-  <p><strong>Author:</strong> {{ book.author_name?.[0] }}</p>
-  <p><strong>Year:</strong> {{ book.first_publish_year }}</p>
-  <p><strong>Author Key:</strong> {{ book.author_key?.[0] }}</p>
-  
-  <button (click)="onClose()">Close</button>
-</div> -->
-
 <p-dialog
   [(visible)]="productDialog"
   [style]="{ width: '450px' }"
@@ -17,7 +8,7 @@
   <ng-template #content>
     <div *ngIf="book">
       <h2>{{ book.title }}</h2>
-      <p><strong>Subtitle:</strong> {{ book.subtitle}}</p>
+      <p><strong>Subtitle:</strong> {{ book.subtitle }}</p>
       <p><strong>Author:</strong> {{ book.author_name?.[0] }}</p>
       <p><strong>Year:</strong> {{ book.first_publish_year }}</p>
       <p><strong>Author Key:</strong> {{ book.author_key?.[0] }}</p>

@@ -1,165 +1,133 @@
-<!-- <p-dialog header="Add Book">
-    <input type="text" [(ngModel)]="book.title" placeholder="Title" />
-    <input type="text" [(ngModel)]="book.author_name" placeholder="Author" />
-    <button (click)="onSave()">Save</button>
-  </p-dialog> -->
-
 <p-dialog
-  header="Add Book"
+  header="{{ editDialog ? 'Edit Book' : 'Add Book' }}"
   [modal]="true"
-  [(visible)]="displayDialog"
-  [style]="{ width: '25rem' }"
-  (onHide)="onCancel()"
->
-  <form [formGroup]="bookForm" (ngSubmit)="onSave()">
-    <div class="p-fluid">
-      <div class="flex items-center gap-4 mb-4">
-        <label for="title" class="font-semibold w-24">Title</label>
-        <input
-          pInputText
-          id="title"
-          type="text"
-          pInputText
-          formControlName="title"
-        />
-      </div>
-      <div class="p-field">
-        <label for="title">Sub-Title</label>
-        <input
-          id="subtitle"
-          type="text"
-          pInputText
-          formControlName="subtitle"
-        />
-      </div>
-      <div class="p-field">
-        <label for="author_name">Author Name</label>
-        <input
-          id="author_name"
-          type="text"
-          pInputText
-          formControlName="author_name"
-        />
-      </div>
-      <div class="p-field">
-        <label for="first_publish_year">Year</label>
-        <input
-          id="first_publish_year"
-          type="text"
-          pInputText
-          formControlName="first_publish_year"
-        />
-      </div>
-      <div class="p-field">
-        <label for="author_key">Author Key</label>
-        <input
-          id="author_key"
-          type="text"
-          pInputText
-          formControlName="author_key"
-        />
-      </div>
-      <div class="p-field">
-        <label for="inventoryStatus">Inventory Status</label>
-        <p-dropdown
-          id="inventoryStatus"
-          formControlName="inventoryStatus"
-          [options]="inventoryOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Select Status"
-        >
-        </p-dropdown>
-      </div>
-    </div>
-
-    <div class="p-d-flex p-jc-end">
-      <button
-        pButton
-        type="button"
-        label="Cancel"
-        class="p-button-secondary"
-        (click)="onCancel()"
-      ></button>
-      <button pButton type="submit" label="Save" class="p-ml-2"></button>
-    </div>
-  </form>
-</p-dialog>
-
-<p-dialog
-  header="Edit Book"
-  [modal]="true"
-  [(visible)]="editDialog"
-  [style]="{ width: '25rem' }"
-  (onHide)="onCancel()"
   [closable]="true"
+  [(visible)]="visible"
+  [style]="{ width: '30rem' }"
+  [dismissableMask]="true"
+  (onHide)="onCancel()"
 >
-  <form [formGroup]="bookForm" (ngSubmit)="oneditSave()">
+  <form
+    [formGroup]="bookForm"
+    (ngSubmit)="editDialog ? oneditSave() : onSave()"
+  >
+    <span class="p-text-secondary block mb-4">
+      {{
+        editDialog ? "Update book details" : "Enter book details below"
+      }}</span
+    >
+
     <div class="p-fluid">
-      <div class="p-field">
-        <label for="title">Title</label>
-        <input id="title" type="text" pInputText formControlName="title" />
+      <div class="p-grid p-align-center p-mb-3">
+        <div class="p-col-4 p-text-right">
+          <label for="title" class="p-text-bold">Title</label>
+        </div>
+        <div class="p-col-8">
+          <input
+            id="title"
+            type="text"
+            pInputText
+            formControlName="title"
+            class="w-full"
+          />
+        </div>
       </div>
-      <div class="p-field">
-        <label for="subtitle">Sub-Title</label>
-        <input
-          id="subtitle"
-          type="text"
-          pInputText
-          formControlName="subtitle"
-        />
+
+      <div class="p-grid p-align-center p-mb-3">
+        <div class="p-col-4 p-text-right">
+          <label for="subtitle" class="p-text-bold">Sub-Title</label>
+        </div>
+        <div class="p-col-8">
+          <input
+            id="subtitle"
+            type="text"
+            pInputText
+            formControlName="subtitle"
+            class="w-full"
+          />
+        </div>
       </div>
-      <div class="p-field">
-        <label for="author_name">Author Name</label>
-        <input
-          id="author_name"
-          type="text"
-          pInputText
-          formControlName="author_name"
-        />
+
+      <div class="p-grid p-align-center p-mb-3">
+        <div class="p-col-4 p-text-right">
+          <label for="author_name" class="p-text-bold">Author Name</label>
+        </div>
+        <div class="p-col-8">
+          <input
+            id="author_name"
+            type="text"
+            pInputText
+            formControlName="author_name"
+            class="w-full"
+          />
+        </div>
       </div>
-      <div class="p-field">
-        <label for="first_publish_year">Year</label>
-        <input
-          id="first_publish_year"
-          type="text"
-          pInputText
-          formControlName="first_publish_year"
-        />
+
+      <div class="p-grid p-align-center p-mb-3">
+        <div class="p-col-4 p-text-right">
+          <label for="first_publish_year" class="p-text-bold">Year</label>
+        </div>
+        <div class="p-col-8">
+          <input
+            id="first_publish_year"
+            type="number"
+            pInputText
+            formControlName="first_publish_year"
+            class="w-full"
+          />
+        </div>
       </div>
-      <div class="p-field">
-        <label for="author_key">Author Key</label>
-        <input
-          id="author_key"
-          type="text"
-          pInputText
-          formControlName="author_key"
-        />
+
+      <div class="p-grid p-align-center p-mb-3">
+        <div class="p-col-4 p-text-right">
+          <label for="author_key" class="p-text-bold">Author Key</label>
+        </div>
+        <div class="p-col-8">
+          <input
+            id="author_key"
+            type="text"
+            pInputText
+            formControlName="author_key"
+            class="w-full"
+          />
+        </div>
       </div>
-      <div class="p-field">
-        <label for="inventoryStatus">Inventory Status</label>
-        <p-dropdown
-          id="inventoryStatus"
-          formControlName="inventoryStatus"
-          [options]="[
-            { label: 'Available', value: 'available' },
-            { label: 'Checked Out', value: 'Checked Out' }
-          ]"
-          optionLabel="label"
-          placeholder="Select Status"
-        ></p-dropdown>
+
+      <div class="p-grid p-align-center p-mb-3">
+        <div class="p-col-4 p-text-right">
+          <label for="inventoryStatus" class="p-text-bold"
+            >Inventory Status</label
+          >
+        </div>
+        <div class="p-col-8">
+          <p-dropdown
+            id="inventoryStatus"
+            formControlName="inventoryStatus"
+            [options]="inventoryOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Select Status"
+            class="w-full"
+          ></p-dropdown>
+        </div>
       </div>
     </div>
 
-    <div class="p-d-flex p-jc-end">
+    <!-- Buttons Section -->
+    <div class="button-container">
       <button
         pButton
         type="button"
         label="Cancel"
-        class="p-button-secondary"
+        class="p-button-outlined p-button-secondary"
         (click)="onCancel()"
       ></button>
-      <button pButton type="submit" label="Save" class="p-ml-2"></button>
+      <button
+        pButton
+        type="submit"
+        [label]="editDialog ? 'Save' : 'Add'"
+        class="p-button p-ml-2"
+      ></button>
     </div>
   </form>
 </p-dialog>

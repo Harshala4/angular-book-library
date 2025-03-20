@@ -1,32 +1,34 @@
-<div class="card">
-  <p-toast></p-toast>
+<div class="container">
+  <div class="content">
+    <div class="card">
+      <p-toast></p-toast>
 
-  <p-toolbar styleClass="mb-6">
-    <ng-template pTemplate="start">
-      <p-button
-        label="Add"
-        icon="pi pi-plus"
-        class="mr-2"
-        (onClick)="openNew()"
-      />
-      <p-button
-        severity="danger"
-        label="Delete"
-        icon="pi pi-trash"
-        outlined
-        (onClick)="deleteSelectedBooks()"
-        [disabled]="!selectedBooks || !selectedBooks.length"
-      />
-      <p-button
-        severity="info"
-        label="Change Category"
-        outlined
-        (onClick)="onChange()"
-      />
-    </ng-template>
-  </p-toolbar>
+      <p-toolbar styleClass="mb-6">
+        <ng-template pTemplate="start">
+          <p-button
+            label="Add"
+            icon="pi pi-plus"
+            class="mr-2"
+            (onClick)="openNew()"
+          />
+          <p-button
+            severity="danger"
+            label="Delete"
+            icon="pi pi-trash"
+            outlined
+            (onClick)="deleteSelectedBooks()"
+            [disabled]="!selectedBooks || !selectedBooks.length"
+          />
+          <p-button
+            severity="info"
+            label="Change Category"
+            outlined
+            (onClick)="onChange()"
+          />
+        </ng-template>
+      </p-toolbar>
 
-  <!-- <p-table [value]="(books$ | async) || []" [scrollable]="true" scrollHeight="550px" [tableStyle]="{ 'min-width': '50rem' }">
+      <!-- <p-table [value]="(books$ | async) || []" [scrollable]="true" scrollHeight="550px" [tableStyle]="{ 'min-width': '50rem' }">
     <ng-template pTemplate="header">
         <tr>
             <th>Book Name </th>
@@ -43,63 +45,63 @@
     </ng-template>
 </p-table> -->
 
-  <p-table
-    #dt
-    [value]="books"
-    [columns]="cols"
-    [globalFilterFields]="[
-      'title',
-      'author_key',
-      'author_name',
-      'first_publish_year'
-    ]"
-    [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedBooks"
-    [rowHover]="true"
-    dataKey="author_key"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [scrollable]="true"
-    scrollHeight="400px"
-    [showCurrentPageReport]="true"
-  >
-    <ng-template pTemplate="caption">
-      <div class="flex items-center justify-between">
-        <h5 class="m-0">Manage Books</h5>
-        <p-iconfield>
-          <p-inputicon styleClass="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            (input)="onFilterGlobal($event)"
-            placeholder="Search..."
-          />
-        </p-iconfield>
-      </div>
-    </ng-template>
-    <ng-template #header>
-      <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-        </th>
-        <!-- <th style="min-width: 16rem">Code</th> -->
+      <p-table
+        #dt
+        [value]="books"
+        [columns]="cols"
+        [globalFilterFields]="[
+          'title',
+          'author_key',
+          'author_name',
+          'first_publish_year'
+        ]"
+        [tableStyle]="{ 'min-width': '75rem' }"
+        [(selection)]="selectedBooks"
+        [rowHover]="true"
+        dataKey="author_key"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [scrollable]="true"
+        scrollHeight="490px"
+        [showCurrentPageReport]="true"
+      >
+        <ng-template pTemplate="caption">
+          <div class="flex items-center justify-between">
+            <h5 class="m-0">Manage Books</h5>
+            <p-iconfield>
+              <p-inputicon styleClass="pi pi-search" />
+              <input
+                pInputText
+                type="text"
+                (input)="onFilterGlobal($event)"
+                placeholder="Search..."
+              />
+            </p-iconfield>
+          </div>
+        </ng-template>
+        <ng-template #header>
+          <tr>
+            <th style="width: 3rem">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <!-- <th style="min-width: 16rem">Code</th> -->
 
-        <th *ngFor="let col of cols" style="min-width: 12rem">
-          {{ col.header }}
-        </th>
-        <th pSortableColumn="inventoryStatus" style="min-width: 12rem">
-          Status
-          <p-sortIcon field="inventoryStatus" />
-        </th>
-        <th style="min-width: 12rem">Actions</th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-book>
-      <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="book"></p-tableCheckbox>
-        </td>
+            <th *ngFor="let col of cols" style="min-width: 12rem">
+              {{ col.header }}
+            </th>
+            <th pSortableColumn="inventoryStatus" style="min-width: 12rem">
+              Status
+              <p-sortIcon field="inventoryStatus" />
+            </th>
+            <th style="min-width: 12rem">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-book>
+          <tr>
+            <td style="width: 3rem">
+              <p-tableCheckbox [value]="book"></p-tableCheckbox>
+            </td>
 
-        <!-- <td *ngFor="let col of cols">
+            <!-- <td *ngFor="let col of cols">
           <ng-container [ngSwitch]="col.field">
             <ng-container *ngSwitchCase="'author_key'">
               {{ book.author_key?.[0] }}
@@ -113,62 +115,72 @@
           </ng-container>
         </td> -->
 
-        <td style="min-width: 12rem">{{ book.author_key?.[0] }}</td>
-        <td style="min-width: 12rem">{{ book.title }}</td>
-        <td style="min-width: 12rem">{{ book.author_name?.[0] }}</td>
-        <td style="min-width: 12rem">{{ book.first_publish_year }}</td>
-        <td style="min-width: 12rem">
-          <p-tag
-            [value]="book.inventoryStatus"
-            [severity]="getSeverity(book.inventoryStatus)"
-          ></p-tag>
-        </td>
+            <td style="min-width: 12rem">{{ book.author_key?.[0] }}</td>
+            <td style="min-width: 12rem">{{ book.title }}</td>
+            <td style="min-width: 12rem">{{ book.author_name?.[0] }}</td>
+            <td style="min-width: 12rem">{{ book.first_publish_year }}</td>
+            <td style="min-width: 12rem">
+              <p-tag
+                [value]="book.inventoryStatus"
+                [severity]="getSeverity(book.inventoryStatus)"
+                (click)="toggleBookStatus(book)"
+                [style]="{ cursor: 'pointer' }"
+              ></p-tag>
+            </td>
 
-        <td>
-          <p-button
+            <td>
+              <!-- <p-button
             label="Info"
             variant="outlined"
             severity="info"
             [rounded]="true"
             (click)="bookDetail(book)"
-          />
-          <p-button
-            icon="pi pi-pencil"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="editBook(book)"
-          />
+          /> -->
+              <p-button
+                icon="pi pi-pencil"
+                class="mr-2"
+                [rounded]="true"
+                [outlined]="true"
+                (click)="editBook(book)"
+              />
 
-          <p-button
-            icon="pi pi-trash"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="deleteBook(book)"
-          />
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template #summary>
-      <div class="flex items-center justify-between">
-        In total there are {{ books ? books.length : 0 }} books.
-      </div>
-    </ng-template>
-  </p-table>
-  <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [rounded]="true"
+                [outlined]="true"
+                (click)="deleteBook(book)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #summary>
+          <div class="flex items-center justify-between">
+            In total there are {{ books ? books.length : 0 }} books.
+          </div>
+        </ng-template>
+      </p-table>
+      <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
 
-  <app-book-item
-    *ngIf="selectedBook"
-    [book]="selectedBook"
-    (close)="closeBookDetail()"
-  ></app-book-item>
+      <app-book-item
+        *ngIf="selectedBook"
+        [book]="selectedBook"
+        (close)="closeBookDetail()"
+      ></app-book-item>
 
-  <app-book-form
-  *ngIf="displayDialog"
-  [displayDialog]="displayDialog"
-  [book]="selectedBook"
-  (save)="saveBook($event)"
-  (cancel)="closeBookDetail()">
-</app-book-form>
+      <app-book-form
+        *ngIf="displayDialog"
+        [displayDialog]="displayDialog"
+        [book]="selectedBook"
+        (save)="saveBook($event)"
+        (cancel)="closeBookDetail()"
+      >
+      </app-book-form>
+    </div>
+  </div>
+  <div class="sidebar">
+    <app-category-selector
+      (categoryChange)="onCategoryChange($event)"
+    ></app-category-selector>
+  </div>
 </div>
