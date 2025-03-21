@@ -4,6 +4,7 @@ import {
   Component,
   inject,
   Input,
+  OnChanges,
   OnInit,
   PLATFORM_ID,
   SimpleChanges,
@@ -25,7 +26,7 @@ interface Book {
   templateUrl: './cat-chart.component.html',
   styleUrl: './cat-chart.component.css',
 })
-export class CatChartComponent implements OnInit {
+export class CatChartComponent implements OnInit, OnChanges {
   @Input() borrowedBooksByCategory: { [key: string]: number } = {};
   borrowedData: unknown = null;
   borrowedOptions: ChartOptions<'bar'> | null = null;
@@ -35,40 +36,47 @@ export class CatChartComponent implements OnInit {
 
   ngOnInit() {
     this.initializeCategories(); // Ensure all categories have 100 books initially
+    // ✅ Load data from localStorage on component initialization
+    this.loadChartData();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['borrowedBooksByCategory']) {
-      const availableTrends = changes['borrowedBooksByCategory'].currentValue;
-      const borrowedTrends = this.borrowedBooksByCategory;
-      this.updateChart(availableTrends, borrowedTrends);
+      this.loadChartData(); // ✅ Ensure chart updates when input changes
     }
   }
 
-  /**
-   * Ensures each category has an initial available count of 100
-   * if real book data is not yet present in localStorage.
-   */
   initializeCategories() {
     this.http
       .get<{ categories: string[] }>('/assets/categories.json')
       .subscribe((data) => {
         const categoryList = data.categories;
 
-        // Create placeholders for tracking book counts
-        const availableTrends: { [key: string]: number } = {};
-        const borrowedTrends: { [key: string]: number } = {};
+        // Retrieve existing trends from localStorage or initialize empty objects
+        const availableTrends: { [key: string]: number } = JSON.parse(
+          localStorage.getItem('available_trends') || '{}'
+        );
+        const borrowedTrends: { [key: string]: number } = JSON.parse(
+          localStorage.getItem('borrowed_trends') || '{}'
+        );
+
+        let isUpdated = false;
 
         categoryList.forEach((category) => {
-          const key = `books_${category}`;
-          const bookList = JSON.parse(localStorage.getItem(key) || 'null');
+          const storageKey = `books_${category}`;
+          const bookList = JSON.parse(
+            localStorage.getItem(storageKey) || 'null'
+          );
 
           if (!bookList) {
-            // ✅ If no data in local storage, assume 100 available books
+            // ✅ If no key exists for this category, assume 100 available books & 0 borrowed
+
             availableTrends[category] = 100;
+
             borrowedTrends[category] = 0;
+            isUpdated = true;
           } else {
-            // ✅ If data exists, use real available/borrowed book count
+            // ✅ If key exists, extract correct counts
             const borrowedBooks = bookList.filter(
               (book: Book) => book.inventoryStatus === 'Checked Out'
             ).length;
@@ -77,8 +85,35 @@ export class CatChartComponent implements OnInit {
           }
         });
 
+        // ✅ Only update localStorage if new values were added
+        if (isUpdated) {
+          localStorage.setItem(
+            'available_trends',
+            JSON.stringify(availableTrends)
+          );
+          localStorage.setItem(
+            'borrowed_trends',
+            JSON.stringify(borrowedTrends)
+          );
+        }
+
+        // ✅ Update chart with final values
         this.updateChart(availableTrends, borrowedTrends);
       });
+  }
+
+  /**
+   * Fetches available and borrowed books from localStorage and updates the chart.
+   */
+  loadChartData() {
+    const borrowedTrends = JSON.parse(
+      localStorage.getItem('borrowed_trends') || '{}'
+    );
+    const availableTrends = JSON.parse(
+      localStorage.getItem('available_trends') || '{}'
+    );
+
+    this.updateChart(availableTrends, borrowedTrends);
   }
 
   /**
@@ -89,8 +124,8 @@ export class CatChartComponent implements OnInit {
     borrowedTrends: { [key: string]: number }
   ) {
     const categories = Object.keys(availableTrends);
-    const borrowedCounts = Object.values(borrowedTrends);
-    const availableCounts = Object.values(availableTrends);
+    const borrowedCounts = categories.map((cat) => borrowedTrends[cat] || 0);
+    const availableCounts = categories.map((cat) => availableTrends[cat] || 0);
 
     this.borrowedData = {
       labels: categories,
@@ -111,9 +146,9 @@ export class CatChartComponent implements OnInit {
         },
       ],
     };
-
     this.borrowedOptions = {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { labels: { color: '#333' } },
       },
@@ -127,6 +162,6 @@ export class CatChartComponent implements OnInit {
       },
     };
 
-    this.cd.markForCheck();
+    this.cd.markForCheck(); // ✅ Ensure Angular detects changes
   }
 }

@@ -27,6 +27,8 @@ import { BookItemComponent } from '../book-item/book-item.component';
 import { BookFormComponent } from '../book-form/book-form.component';
 import { BookDoc } from '../models/book.model';
 import { CategorySelectorComponent } from '../category-selector/category-selector.component';
+import { CatChartComponent } from '../category-selector/cat-chart/cat-chart.component';
+import { HttpClient } from '@angular/common/http';
 
 interface Column {
   field: string;
@@ -57,6 +59,7 @@ interface Status {
     BookItemComponent,
     BookFormComponent,
     CategorySelectorComponent,
+    CatChartComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './book-list.component.html',
@@ -86,7 +89,10 @@ export class BookListComponent implements OnInit {
   displayDialog: boolean = false; // For Add Book dialog
   editDialog: boolean = false;
 
-  constructor(private store: Store<{ books: BookState }>) {
+  constructor(
+    private store: Store<{ books: BookState }>,
+    private http: HttpClient
+  ) {
     this.books$ = this.store.pipe(
       select((state) => state.books.books),
       map((books) => books ?? [])
@@ -98,7 +104,7 @@ export class BookListComponent implements OnInit {
     this.category = this.route.snapshot.paramMap.get('category')!;
     console.log('Category:', this.category);
     this.loadBooksFromLocalStorage();
-    this.calculateBorrowedTrends();
+    this.loadCategoriesAndCalculateBorrowedTrends();
 
     // this.store.dispatch(loadBooks({ category: this.category }));
 
@@ -197,7 +203,7 @@ export class BookListComponent implements OnInit {
   onCategoryChange(category: string) {
     this.category = category;
     this.loadBooksFromLocalStorage();
-    this.calculateBorrowedTrends();
+    this.calculateBorrowedAndAvailableTrends([this.category]);
   }
 
   /**
@@ -229,7 +235,7 @@ export class BookListComponent implements OnInit {
           life: 3000,
         });
         this.updateTable();
-        this.calculateBorrowedTrends();
+        this.calculateBorrowedAndAvailableTrends([this.category]);
       },
     });
   }
@@ -256,7 +262,7 @@ export class BookListComponent implements OnInit {
           life: 3000,
         });
         this.updateTable();
-        this.calculateBorrowedTrends();
+        this.calculateBorrowedAndAvailableTrends([this.category]);
       },
     });
   }
@@ -285,7 +291,7 @@ export class BookListComponent implements OnInit {
     // Then persist the updated array in localStorage
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.updateTable();
-    this.calculateBorrowedTrends();
+    this.calculateBorrowedAndAvailableTrends([this.category]);
   }
 
   toggleBookStatus(book: BookDoc) {
@@ -302,7 +308,7 @@ export class BookListComponent implements OnInit {
 
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.updateTable();
-    this.calculateBorrowedTrends();
+    this.calculateBorrowedAndAvailableTrends([this.category]);
   }
 
   bookDetail(book: BookDoc) {
@@ -352,7 +358,7 @@ export class BookListComponent implements OnInit {
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.cd.detectChanges();
     this.updateTable();
-    this.calculateBorrowedTrends();
+    this.calculateBorrowedAndAvailableTrends([this.category]);
   }
 
   updateTable() {
@@ -367,44 +373,43 @@ export class BookListComponent implements OnInit {
 
   borrowedBooksByCategory: { [key: string]: number } = {};
 
-  //   calculateBorrowedTrends() {
-  //     const categories = JSON.parse(localStorage.getItem('categories') || '[]');
-  //     const allBorrowedTrends = JSON.parse(localStorage.getItem('borrowed_trends') || '{}');
+  loadCategoriesAndCalculateBorrowedTrends() {
+    this.http.get<{ categories: string[] }>('assets/categories.json').subscribe(
+      (data) => {
+        const categories = data.categories;
+        this.calculateBorrowedAndAvailableTrends(categories);
+      },
+      (error) => {
+        console.error('Error loading categories:', error);
+      }
+    );
+  }
 
-  //     this.borrowedBooksByCategory = categories.reduce(
-  //       (acc: { [key: string]: number }, category: string) => {
-  //         const books = JSON.parse(
-  //           localStorage.getItem(`books_${category}`) || '[]'
-  //         );
-  //         const borrowedCount = books.filter(
-  //           (b: BookDoc) => b.inventoryStatus === 'Checked Out'
-  //         ).length;
-  //         acc[category] = borrowedCount;
-  //         return acc;
-  //       },
-  //       {}
-  //     );
-
-  //     localStorage.setItem(
-  //       'borrowed_trends',
-  //       JSON.stringify(this.borrowedBooksByCategory)
-  //     );
-  //   }
-  // }
-  calculateBorrowedTrends() {
-    const categories = JSON.parse(localStorage.getItem('categories') || '[]');
-    const allBorrowedTrends = JSON.parse(
+  calculateBorrowedAndAvailableTrends(categories: string[]) {
+    const borrowedTrends: { [key: string]: number } = JSON.parse(
       localStorage.getItem('borrowed_trends') || '{}'
+    );
+    const availableTrends: { [key: string]: number } = JSON.parse(
+      localStorage.getItem('available_trends') || '{}'
     );
 
     categories.forEach((category: string) => {
       const storageKey = `books_${category}`;
       const books = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      allBorrowedTrends[category] = books.filter(
+
+      const borrowedCount = books.filter(
         (b: BookDoc) => b.inventoryStatus === 'Checked Out'
       ).length;
+      const availableCount = books.length - borrowedCount;
+
+      borrowedTrends[category] = borrowedCount;
+      availableTrends[category] = availableCount;
     });
-    this.borrowedBooksByCategory = allBorrowedTrends;
-    localStorage.setItem('borrowed_trends', JSON.stringify(allBorrowedTrends));
+
+    this.borrowedBooksByCategory = borrowedTrends;
+
+    // Store the data separately in localStorage
+    localStorage.setItem('borrowed_trends', JSON.stringify(borrowedTrends));
+    localStorage.setItem('available_trends', JSON.stringify(availableTrends));
   }
 }

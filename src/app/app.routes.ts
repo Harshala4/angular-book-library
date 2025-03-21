@@ -7,7 +7,7 @@ import { BookItemComponent } from './book-item/book-item.component';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/categories',
+    redirectTo: '/book-list',
     pathMatch: 'full',
   },
   {

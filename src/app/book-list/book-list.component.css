@@ -1,21 +1,210 @@
-.container {
-  display: flex;
-  flex-direction: row;
-  height: 100vh; /* Ensure the container takes the full height of the viewport */
+html,
+body {
+  overflow: hidden; /* Prevents scrolling */
+  height: 100vh; /* Fixes height to viewport */
+  margin: 0;
+  padding: 0;
 }
 
-.sidebar {
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* overflow: hidden; Ensure the container takes the full height of the viewport */
+}
+
+/* Toolbar - Compact Design */
+.toolbar-container {
+  width: 100%;
+  padding: 5px 10px; /* Reduce padding */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 40px; /* Adjust to make it compact */
+}
+
+/* Toolbar Content Layout */
+.toolbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: row;
   flex: 1;
-  padding: 1rem;
-  overflow-y: auto; /* Ensure the sidebar is scrollable if content overflows */
+  overflow: hidden;
 }
 
 .content {
   flex: 3;
   padding: 1rem;
-  overflow-y: auto; /* Ensure the content area is scrollable if content overflows */
+  overflow-y: auto;
+  max-height: calc(
+    100vh - 70px
+  ); /* Ensure the content area is scrollable if content overflows */
+}
+
+.sidebar {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  margin-top: 20px;
+  max-height: calc(
+    100vh - 70px
+  ); /* Adjust the margin to move the graph downwards */
 }
 
 p-button {
   padding: 5px;
+}
+
+p-toolbar {
+  width: 100%;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-2 {
+  gap: 0.5rem; /* Adjusts spacing between Add and Delete buttons */
+}
+
+.gap-3 {
+  gap: 1rem; /* Adjusts spacing between category selector and search box */
+}
+
+.items-center {
+  align-items: center;
+}
+
+.w-full {
+  width: 100%;
+}
+
+app-category-selector {
+  margin-top: 0; /* Remove the margin-top to align with other elements */
+}
+
+/* Toolbar Styling */
+.toolbar-container {
+  width: 100%; /* Span end-to-end */
+  padding: 5px; /* Reduce padding */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  min-height: 35px;
+}
+
+/* Flexbox for Layout */
+.toolbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Allows wrapping on smaller screens */
+  gap: 8px;
+
+  height: 50px;
+  align-content: center;
+}
+
+/* Button Group */
+.toolbar-buttons,
+.toolbar-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Filters (Dropdown + Search) */
+.toolbar-filters {
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  min-width: 280px;
+}
+
+/* Search Box Adjustments */
+.search-box {
+  width: auto;
+  min-width: 100px;
+  flex-grow: 0; /* Adjusts based on available space */
+}
+app-category-selector {
+  margin-top: 50px;
+}
+/* Responsive Adjustments */
+@media (max-width: 700px) {
+  .toolbar-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: flex-start;
+    align-content: baseline;
+    gap: 5px;
+    height: fit-content;
+  }
+
+  .toolbar-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .toolbar-buttons-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .toolbar-filters-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .toolbar-filters {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%; /* Takes full width */
+    /* justify-content: space-between; */
+  }
+  app-category-selector {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+    width: 100%;
+  }
+  .search-box {
+    margin-top: -50px;
+  }
+  .toolbar-buttons {
+    justify-content: center;
+  }
+  .content-wrapper {
+    flex-direction: column;
+  }
 }
