@@ -9,7 +9,7 @@
             severity="danger"
             label="Delete"
             icon="pi pi-trash"
-            outlined
+            
             (onClick)="deleteSelectedBooks()"
             [disabled]="!selectedBooks || !selectedBooks.length"
           />
@@ -57,7 +57,7 @@
           dataKey="author_key"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
           [scrollable]="true"
-          scrollHeight="500px"
+          scrollHeight="450px"
           [showCurrentPageReport]="true"
         >
           <!-- <ng-template pTemplate="caption">
@@ -102,14 +102,13 @@
                   icon="pi pi-pencil"
                   class="mr-2"
                   [rounded]="true"
-                  [outlined]="true"
+                  severity="info"
                   (click)="editBook(book)"
                 />
                 <p-button
                   icon="pi pi-trash"
                   severity="danger"
                   [rounded]="true"
-                  [outlined]="true"
                   (click)="deleteBook(book)"
                 />
               </td>
@@ -123,18 +122,12 @@
         </p-table>
         <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
 
-        <app-book-item
-          *ngIf="selectedBook"
-          [book]="selectedBook"
-          (close)="closeBookDetail()"
-        ></app-book-item>
-
         <app-book-form
-          *ngIf="displayDialog"
           [displayDialog]="displayDialog"
+          [editDialog]="editDialog"
           [book]="selectedBook"
           (save)="saveBook($event)"
-          (cancel)="closeBookDetail()"
+          (cancel)="onCancelDialog()"
         >
         </app-book-form>
       </div>

@@ -9,7 +9,7 @@
 >
   <form
     [formGroup]="bookForm"
-    (ngSubmit)="editDialog ? oneditSave() : onSave()"
+    (ngSubmit)="onSave()"
   >
     <span class="p-text-secondary block mb-4">
       {{
@@ -33,7 +33,7 @@
         </div>
       </div>
 
-      <div class="p-grid p-align-center p-mb-3">
+      <!-- <div class="p-grid p-align-center p-mb-3">
         <div class="p-col-4 p-text-right">
           <label for="subtitle" class="p-text-bold">Sub-Title</label>
         </div>
@@ -46,7 +46,7 @@
             class="w-full"
           />
         </div>
-      </div>
+      </div> -->
 
       <div class="p-grid p-align-center p-mb-3">
         <div class="p-col-4 p-text-right">
@@ -127,6 +127,7 @@
         type="submit"
         [label]="editDialog ? 'Save' : 'Add'"
         class="p-button p-ml-2"
+        [disabled]="bookForm.invalid"
       ></button>
     </div>
   </form>

@@ -44,6 +44,6 @@ export class CategorySelectorComponent implements OnInit {
     console.log('Selected Category:', this.selectedCategory);
     console.log('Event:', event.value);
     this.categoryChange.emit(this.selectedCategory);
-    this.router.navigate(['/books', this.selectedCategory]);
+    // this.router.navigate(['/books', this.selectedCategory]);
   }
 }

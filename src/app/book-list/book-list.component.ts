@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+// import { ActivatedRoute, Router } from '@angular/router';
 import {
   ChangeDetectorRef,
   Component,
@@ -23,7 +23,6 @@ import { FormsModule } from '@angular/forms';
 import { ToastModule } from 'primeng/toast';
 import { Tag } from 'primeng/tag';
 import { ConfirmDialog } from 'primeng/confirmdialog';
-import { BookItemComponent } from '../book-item/book-item.component';
 import { BookFormComponent } from '../book-form/book-form.component';
 import { BookDoc } from '../models/book.model';
 import { CategorySelectorComponent } from '../category-selector/category-selector.component';
@@ -56,7 +55,6 @@ interface Status {
     ToastModule,
     ConfirmDialog,
     Tag,
-    BookItemComponent,
     BookFormComponent,
     CategorySelectorComponent,
     CatChartComponent,
@@ -79,8 +77,8 @@ export class BookListComponent implements OnInit {
   selectedBook: BookDoc | null = null;
   isEditMode: boolean = false;
 
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  // private route = inject(ActivatedRoute);
+  // private router = inject(Router);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
@@ -101,7 +99,7 @@ export class BookListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.category = this.route.snapshot.paramMap.get('category')!;
+    // this.category = this.route.snapshot.paramMap.get('category')!;
     console.log('Category:', this.category);
     this.loadBooksFromLocalStorage();
     this.loadCategoriesAndCalculateBorrowedTrends();
@@ -149,8 +147,9 @@ export class BookListComponent implements OnInit {
       this.store.dispatch(setBooksFromLocalStorage({ books: this.books }));
 
       /** Explain the reasoning behind this. */
-      this.cd.detectChanges();
-      this.updateTable();
+      this.cd.detectChanges();// Trigger change detection
+      this.updateTable();//Update the table and create a copy of the books array
+      this.calculateBorrowedAndAvailableTrends([this.category]);
     } else {
       /** Maintain a sequence of events. */
       this.books = [];
@@ -169,20 +168,6 @@ export class BookListComponent implements OnInit {
               inventoryStatus: book.inventoryStatus || 'available',
             }));
 
-            // this.books$.subscribe((books) => {
-            //   // books = books.map((book) => {
-            //   if (this.category) {
-            //     // Ensure it's scoped to the selected category
-            //     const scopedbooks = books.map((book) => ({
-            //       ...book,
-            //       inventoryStatus: book.inventoryStatus || 'available',
-            //     }));
-            //     //   if (!book.inventoryStatus) {
-            //     //     book.inventoryStatus = 'available';
-            //     //   }
-            //     //   return book;
-            //     // });
-
             this.books = scopedbooks;
             console.log(
               'Books from store:',
@@ -195,6 +180,7 @@ export class BookListComponent implements OnInit {
             );
             this.cd.detectChanges();
             this.updateTable();
+            this.calculateBorrowedAndAvailableTrends([this.category]);
           }
         });
     }
@@ -274,7 +260,6 @@ export class BookListComponent implements OnInit {
       case 'Checked Out':
         return 'danger';
       default:
-        // case 'OUTOFSTOCK':
         return 'info';
     }
   }
@@ -311,10 +296,10 @@ export class BookListComponent implements OnInit {
     this.calculateBorrowedAndAvailableTrends([this.category]);
   }
 
-  bookDetail(book: BookDoc) {
-    this.selectedBook = book;
-    console.log(this.selectedBook);
-  }
+  // bookDetail(book: BookDoc) {
+  //   this.selectedBook = book;
+  //   // console.log(this.selectedBook);
+  // }
 
   closeBookDetail() {
     this.selectedBook = null;
@@ -325,33 +310,42 @@ export class BookListComponent implements OnInit {
     this.isEditMode = false;
     this.displayDialog = true;
     this.editDialog = false;
-    this.router.navigate(['/add-book'], {
-      state: { action: 'new', category: this.category },
-    });
+    console.log('ADD');
+    // this.router.navigate(['/add-book'], {
+    //   state: { action: 'new', category: this.category },
+    // });
   }
   editBook(book: BookDoc) {
-    // this.selectedBook = { ...book }; // Clone the book object
     this.isEditMode = true;
-    this.selectedBook = book;
+    this.selectedBook = { ...book };
     // this.bookForm.patchValue(book); // Prepopulate the form with the book's data
     this.editDialog = true;
     this.displayDialog = false;
-    const authorKey = Array.isArray(book.author_key)
-      ? book.author_key[0]
-      : book.author_key;
-    this.router.navigate(['/edit-book', authorKey], {
-      state: { action: 'edit', book, category: this.category },
-    });
+    // const authorKey = Array.isArray(book.author_key)
+    //   ? book.author_key[0]
+    //   : book.author_key;
+    // this.router.navigate(['/edit-book', authorKey], {
+    //   state: { action: 'edit', book, category: this.category },
+    // });
+  }
+
+  onCancelDialog() {
+    this.displayDialog = false;
+    this.editDialog = false;
   }
 
   saveBook(book: BookDoc) {
-    if (this.isEditMode) {
-      const index = this.books.findIndex(
-        (b) => b.author_key === book.author_key
-      );
-      if (index !== -1) {
-        this.books[index] = book;
-      }
+    const authorKey = Array.isArray(book.author_key)
+      ? book.author_key[0]
+      : book.author_key;
+
+    const index = this.books.findIndex((b) => {
+      const bKey = Array.isArray(b.author_key) ? b.author_key[0] : b.author_key;
+      return bKey === authorKey;
+    });
+
+    if (this.isEditMode && index !== -1) {
+      this.books[index] = book;
     } else {
       this.books.push(book);
     }
@@ -359,6 +353,9 @@ export class BookListComponent implements OnInit {
     this.cd.detectChanges();
     this.updateTable();
     this.calculateBorrowedAndAvailableTrends([this.category]);
+
+    this.displayDialog = false;
+    this.editDialog = false;
   }
 
   updateTable() {
@@ -367,9 +364,9 @@ export class BookListComponent implements OnInit {
     this.cd.detectChanges();
   }
 
-  onChange() {
-    this.router.navigate(['categories']);
-  }
+  // onChange() {
+  //   this.router.navigate(['categories']);
+  // }
 
   borrowedBooksByCategory: { [key: string]: number } = {};
 

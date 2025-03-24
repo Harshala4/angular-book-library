@@ -82,6 +82,7 @@ export class CatChartComponent implements OnInit, OnChanges {
             ).length;
             availableTrends[category] = bookList.length - borrowedBooks;
             borrowedTrends[category] = borrowedBooks;
+            isUpdated=true;
           }
         });
 
