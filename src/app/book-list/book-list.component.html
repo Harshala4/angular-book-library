@@ -9,7 +9,6 @@
             severity="danger"
             label="Delete"
             icon="pi pi-trash"
-            
             (onClick)="deleteSelectedBooks()"
             [disabled]="!selectedBooks || !selectedBooks.length"
           />
@@ -57,14 +56,9 @@
           dataKey="author_key"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
           [scrollable]="true"
-          scrollHeight="450px"
+          scrollHeight="600px"
           [showCurrentPageReport]="true"
         >
-          <!-- <ng-template pTemplate="caption">
-            <div class="flex items-center justify-between">
-              <h5 class="m-0">Manage Books</h5>
-            </div>
-          </ng-template> -->
           <ng-template #header>
             <tr>
               <th style="width: 3rem">

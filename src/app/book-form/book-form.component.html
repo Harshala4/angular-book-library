@@ -3,113 +3,84 @@
   [modal]="true"
   [closable]="true"
   [(visible)]="visible"
-  [style]="{ width: '30rem' }"
+  [style]="{ width: '35rem' }"
   [dismissableMask]="true"
   (onHide)="onCancel()"
 >
-  <form
-    [formGroup]="bookForm"
-    (ngSubmit)="onSave()"
-  >
-    <span class="p-text-secondary block mb-4">
-      {{
-        editDialog ? "Update book details" : "Enter book details below"
-      }}</span
-    >
+  <form [formGroup]="bookForm" (ngSubmit)="onSave()" class="book-form">
+    <span class="p-text-secondary block form-subtitle">
+      {{ editDialog ? "Update book details" : "Enter book details below" }}
+    </span>
 
-    <div class="p-fluid">
-      <div class="p-grid p-align-center p-mb-3">
-        <div class="p-col-4 p-text-right">
-          <label for="title" class="p-text-bold">Title</label>
-        </div>
-        <div class="p-col-8">
+    <div class="form-container">
+      <div class="field">
+        <p-floatlabel>
           <input
             id="title"
             type="text"
             pInputText
             formControlName="title"
-            class="w-full"
+            class="input-field"
+            required
           />
-        </div>
+          <label for="title">Title</label>
+        </p-floatlabel>
       </div>
 
-      <!-- <div class="p-grid p-align-center p-mb-3">
-        <div class="p-col-4 p-text-right">
-          <label for="subtitle" class="p-text-bold">Sub-Title</label>
-        </div>
-        <div class="p-col-8">
-          <input
-            id="subtitle"
-            type="text"
-            pInputText
-            formControlName="subtitle"
-            class="w-full"
-          />
-        </div>
-      </div> -->
-
-      <div class="p-grid p-align-center p-mb-3">
-        <div class="p-col-4 p-text-right">
-          <label for="author_name" class="p-text-bold">Author Name</label>
-        </div>
-        <div class="p-col-8">
+      <div class="field">
+        <p-floatLabel>
           <input
             id="author_name"
             type="text"
             pInputText
             formControlName="author_name"
-            class="w-full"
+            class="input-field"
+            required
           />
-        </div>
+          <label for="author_name">Author Name</label>
+        </p-floatLabel>
       </div>
 
-      <div class="p-grid p-align-center p-mb-3">
-        <div class="p-col-4 p-text-right">
-          <label for="first_publish_year" class="p-text-bold">Year</label>
-        </div>
-        <div class="p-col-8">
+      <div class="field">
+        <p-floatLabel>
           <input
             id="first_publish_year"
             type="number"
             pInputText
             formControlName="first_publish_year"
-            class="w-full"
+            class="input-field"
+            required
           />
-        </div>
+          <label for="first_publish_year">Year</label>
+        </p-floatLabel>
       </div>
 
-      <div class="p-grid p-align-center p-mb-3">
-        <div class="p-col-4 p-text-right">
-          <label for="author_key" class="p-text-bold">Author Key</label>
-        </div>
-        <div class="p-col-8">
+      <div class="field">
+        <p-floatLabel>
           <input
             id="author_key"
             type="text"
             pInputText
             formControlName="author_key"
-            class="w-full"
+            class="input-field"
+            required
           />
-        </div>
+          <label for="author_key">Author Key</label>
+        </p-floatLabel>
       </div>
 
-      <div class="p-grid p-align-center p-mb-3">
-        <div class="p-col-4 p-text-right">
-          <label for="inventoryStatus" class="p-text-bold"
-            >Inventory Status</label
-          >
-        </div>
-        <div class="p-col-8">
+      <div class="field">
+        <p-floatLabel>
           <p-dropdown
             id="inventoryStatus"
             formControlName="inventoryStatus"
             [options]="inventoryOptions"
             optionLabel="label"
             optionValue="value"
-            placeholder="Select Status"
-            class="w-full"
+            class="dropdown-field"
           ></p-dropdown>
-        </div>
+          <!-- <label for="inventoryStatus">Inventory Status</label> -->
+        </p-floatLabel>
       </div>
     </div>
 
@@ -126,7 +97,7 @@
         pButton
         type="submit"
         [label]="editDialog ? 'Save' : 'Add'"
-        class="p-button p-ml-2"
+        class="p-button p-ml-2 save-button"
         [disabled]="bookForm.invalid"
       ></button>
     </div>

@@ -16,6 +16,9 @@ import { BookService } from '../services/book.service';
 import { Store } from '@ngrx/store';
 import { BookDoc } from '../models/book.model';
 import { AppState } from '../state/book.reducer';
+import {FloatLabelModule} from 'primeng/floatlabel';
+import { InputTextModule } from 'primeng/inputtext';
+
 
 @Component({
   standalone: true,
@@ -27,6 +30,8 @@ import { AppState } from '../state/book.reducer';
     ConfirmDialogModule,
     DropdownModule,
     ReactiveFormsModule,
+    FloatLabelModule,
+    InputTextModule,
   ],
   templateUrl: './book-form.component.html',
   styleUrl: './book-form.component.css',
@@ -86,33 +91,10 @@ export class BookFormComponent implements OnInit {
     if (this.bookId) {
       if (this.book) {
         this.bookForm.patchValue(this.book);
+
+       
       }
     }
-    // this.authorKey = this.route.snapshot.paramMap.get('authorKey');
-    // this.category =
-    //   this.route.snapshot.paramMap.get('category') || history.state.category;
-    // console.log('Author Key', this.authorKey);
-    // console.log('Category', this.category);
-    // if (this.authorKey && this.category) {
-    //   const storedBooks = localStorage.getItem(`books_${this.category}`);
-    //   console.log(storedBooks);
-    //   if (storedBooks) {
-    //     const books = JSON.parse(storedBooks);
-    //     const foundBook = books.find((b: BookDoc) => {
-    //       const bookAuthorKey = Array.isArray(b.author_key)
-    //         ? b.author_key[0]
-    //         : b.author_key;
-    //       return bookAuthorKey === this.authorKey;
-    //     });
-    //     console.log('found book', foundBook);
-    //     if (foundBook) {
-    //       // Patch form with existing data
-    //       this.bookForm.patchValue(foundBook);
-    //       this.displayDialog = false;
-    //       this.editDialog = true;
-    //     }
-    //   }
-    // }
   }
 
   ngOnChanges() {
@@ -120,6 +102,7 @@ export class BookFormComponent implements OnInit {
   
     if (this.book) {
       this.bookForm.patchValue(this.book);
+     
     } else {
       this.bookForm.reset({
         title: '',
@@ -134,6 +117,7 @@ export class BookFormComponent implements OnInit {
   
 
   onSave(): void {
+    
     if (this.bookForm.valid) {
       const book = this.bookForm.value;
   
@@ -159,57 +143,13 @@ export class BookFormComponent implements OnInit {
   }
   
 
-  // oneditSave(): void {
-  //   if (this.bookForm.valid) {
-  //     const updatedBook = this.bookForm.value;
-  //     console.log('Editing Book:', updatedBook);
-
-  //     updatedBook.author_key = Array.isArray(updatedBook.author_key)
-  //       ? updatedBook.author_key
-  //       : [updatedBook.author_key];
-  //     updatedBook.author_name = Array.isArray(updatedBook.author_name)
-  //       ? updatedBook.author_name
-  //       : [updatedBook.author_name];
-
-  //     if (
-  //       typeof updatedBook.inventoryStatus === 'object' &&
-  //       updatedBook.inventoryStatus.value
-  //     ) {
-  //       updatedBook.inventoryStatus = updatedBook.inventoryStatus.value;
-  //     }
-
-  //     updatedBook.category = this.category;
-  //     this.save.emit(updatedBook);
-
-  //     const storedBooks = localStorage.getItem(`books_${this.category}`);
-  //     const books = storedBooks ? JSON.parse(storedBooks) : [];
-
-  //     // If editing, replace existing; otherwise push
-  //     const index = books.findIndex((b: BookDoc) => {
-  //       const bookAuthorKey = Array.isArray(b.author_key)
-  //         ? b.author_key[0]
-  //         : b.author_key;
-
-  //       const updatedAuthorKey = updatedBook.author_key[0];
-
-  //       console.log(`Checking: ${bookAuthorKey} === ${updatedAuthorKey}`);
-  //       return bookAuthorKey === updatedBook.author_key[0];
-  //     });
-  //     if (index > -1) {
-  //       books[index] = updatedBook; // Edit
-  //       console.log('Book updated:', updatedBook);
-  //     } else {
-  //       console.warn('Book not found, adding as new instead.');
-  //       books.push(updatedBook); // Add
-  //     }
-
-  //     localStorage.setItem(`books_${this.category}`, JSON.stringify(books));
-
-  //     // Close dialog and navigate back to list
-  //     this.editDialog = false;
-  //     // this.router.navigate(['/book-list', { category: this.category }]);
-  //   }
-  // }
+  markTouched(field: string) {
+    const control = this.bookForm.get(field);
+    if (control) {
+      control.markAsTouched();
+      control.markAsDirty();
+    }
+  }
 
   onCancel() {
     this.visible = false;

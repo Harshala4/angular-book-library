@@ -1,10 +1,49 @@
 div {
   padding: 5px;
 }
+.book-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-subtitle {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field {
+  position: relative;
+}
+
+.input-field {
+  width: 100%;
+  height: 3rem;
+  font-size: 1rem;
+}
+
+.dropdown-field {
+  width: 100%;
+  font-size: 1rem;
+}
 
 .button-container {
   display: flex;
   justify-content: flex-end;
-  gap: 10px; /* Adds spacing between buttons */
-  margin-top: 5rem; /* Adjust as needed */
+  gap: 1rem;
+  margin-top: 2rem;
 }
+
+.save-button {
+  background-color: #28a745;
+  border: none;
+}
+
+

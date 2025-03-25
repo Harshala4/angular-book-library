@@ -35,6 +35,12 @@ body {
   gap: 8px;
 }
 
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Ensure the container takes the full height of the viewport */
+}
+
 .content-wrapper {
   display: flex;
   flex-direction: row;
@@ -54,7 +60,7 @@ body {
 .sidebar {
   flex: 1;
   padding: 1rem;
-  overflow-y: auto;
+  overflow-y: hidden;
   margin-top: 20px;
   max-height: calc(
     100vh - 70px
@@ -206,5 +212,17 @@ app-category-selector {
   }
   .content-wrapper {
     flex-direction: column;
+  }
+  .sidebar {
+    margin-top: 0;
+    padding-top:0px;
+    max-height: fit-content;
+    overflow-y:visible;
+  }
+  .content {
+    margin-top: 0;
+    max-height:fit-content;
+    overflow-y: visible;
+    padding-bottom:0px;
   }
 }

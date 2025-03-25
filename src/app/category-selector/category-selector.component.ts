@@ -5,7 +5,6 @@ import { CategoryService } from '../services/category.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CatChartComponent } from './cat-chart/cat-chart.component';
 import { Category } from '../models/category.model';
 
 @Component({
@@ -16,7 +15,6 @@ import { Category } from '../models/category.model';
     DropdownModule,
     CommonModule,
     FormsModule,
-    CatChartComponent,
   ],
   templateUrl: './category-selector.component.html',
   styleUrl: './category-selector.component.css',
