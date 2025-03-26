@@ -1,12 +1,13 @@
 <div class="container">
   <p-toolbar styleClass="toolbar-container">
     <div class="toolbar-content">
+      <app-header [totalBooks]="totalBooks"></app-header>
       <!-- Buttons -->
       <div class="toolbar-buttons-wrapper">
         <div class="toolbar-buttons">
           <p-button label="Add" icon="pi pi-plus" (onClick)="openNew()" />
           <p-button
-            *ngIf="selectedBooks && selectedBooks.length>0"
+            *ngIf="selectedBooks && selectedBooks.length > 0"
             severity="danger"
             label="Delete"
             icon="pi pi-trash"
@@ -52,12 +53,13 @@
             'author_name',
             'first_publish_year'
           ]"
-          [tableStyle]="{ 'min-width': '75rem' }"
+          [tableStyle]="{ width: '100%' ,height: 'calc(100vh - 120px)' }"
           [(selection)]="selectedBooks"
           [rowHover]="true"
           dataKey="author_key"
-          currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
           [showCurrentPageReport]="true"
+          [scrollable]="true"
+          scrollHeight="flex"
         >
           <ng-template #header>
             <tr>
@@ -67,11 +69,11 @@
               <th *ngFor="let col of cols">
                 {{ col.header }}
               </th>
-              <th pSortableColumn="inventoryStatus" style="min-width: 12rem">
+              <th pSortableColumn="inventoryStatus" style="min-width: 9rem">
                 Status
                 <p-sortIcon field="inventoryStatus" />
               </th>
-              <th style="min-width: 12rem">Actions</th>
+              <th style="min-width: 9rem">Actions</th>
             </tr>
           </ng-template>
           <ng-template #body let-book>
@@ -79,11 +81,11 @@
               <td style="width: 3rem">
                 <p-tableCheckbox [value]="book"></p-tableCheckbox>
               </td>
-              <td style="min-width: 12rem">{{ book.author_key?.[0] }}</td>
-              <td style="min-width: 12rem">{{ book.title }}</td>
-              <td style="min-width: 12rem">{{ book.author_name?.[0] }}</td>
-              <td style="min-width: 12rem">{{ book.first_publish_year }}</td>
-              <td style="min-width: 12rem">
+              <td>{{ book.author_key?.[0] }}</td>
+              <td>{{ book.title }}</td>
+              <td>{{ book.author_name?.[0] }}</td>
+              <td>{{ book.first_publish_year }}</td>
+              <td>
                 <p-tag
                   [value]="book.inventoryStatus"
                   [severity]="getSeverity(book.inventoryStatus)"

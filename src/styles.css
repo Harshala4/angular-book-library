@@ -1,27 +1,19 @@
 @import "primeicons/primeicons.css";
 
 html,body{
-    overflow-y:auto;
+    overflow-y:hidden;
 }
-@media(max-width: 700px){
+/* @media(max-width: 700px){
     html,body{
         overflow-y:auto;
         overflow-x:auto;
     }
 
-}
-/* You can add global styles to this file, and also import other style files */
-
-/* :root{
-    --font-family:Arial !important;
-}
-
-body, button, input, select, textarea, .pcomponent{
-    font-family: var(--font-family) !important;
 } */
 
+
 :root {
-    --font-family: 'Inter', sans-serif !important;
+    --font-family: 'Roboto', sans-serif !important;
   }
   
   body, p, button, input, select, textarea, .p-component {
