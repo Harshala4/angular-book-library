@@ -17,3 +17,11 @@ export const setBooksFromLocalStorage = createAction(
   '[Book] Set Books From Local Storage',
   props<{ books: BookDoc[] }>()
 );
+export const addBook = createAction(
+  '[Book] Add Book',
+  props<{ book: BookDoc }>()
+);
+export const editBook = createAction(
+  '[Book] Edit Book',
+  props<{ book: BookDoc }>()
+);

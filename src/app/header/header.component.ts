@@ -1,17 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MenubarModule } from 'primeng/menubar';
 import { AvatarModule } from 'primeng/avatar';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { BadgeModule } from 'primeng/badge';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router } from '@angular/router';
 import { BookService } from '../services/book.service';
 import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { CategoryService } from '../services/category.service';
 import { Category } from '../models/category.model';
 import { MenuItem } from 'primeng/api';
-import { CategorySelectorComponent } from '../category-selector/category-selector.component';
 
 @Component({
   standalone: true,
@@ -24,8 +23,6 @@ import { CategorySelectorComponent } from '../category-selector/category-selecto
     ButtonModule,
     FormsModule,
     PanelMenuModule,
-    RouterOutlet,
-    CategorySelectorComponent,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
@@ -34,13 +31,14 @@ export class HeaderComponent implements OnInit {
   items: MenuItem[] = [];
   categories: Category[] = [];
   searchText: string = '';
-
+  @Input() totalBooks: number = 0;
   menuItems: MenuItem[] = [{ label: 'Dashboard', icon: 'pi pi-home' }];
 
   constructor(
-    private bookService: BookService,
+    public bookService: BookService,
     private router: Router,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private cd:ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +71,14 @@ export class HeaderComponent implements OnInit {
         this.categories = []; // ✅ Prevents undefined errors
       },
     });
+    this.bookService.totalBooks$.subscribe(count => {
+      console.log('Updated totalBooks in header:', count);
+      setTimeout(() => {
+        this.totalBooks = count;
+      });
+      this.cd.detectChanges();
+    });
+    
   }
 
   // Function to filter books based on category
@@ -88,4 +94,5 @@ export class HeaderComponent implements OnInit {
       });
     }
   }
+  
 }

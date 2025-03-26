@@ -10,7 +10,6 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  /* overflow: hidden; Ensure the container takes the full height of the viewport */
 }
 
 /* Toolbar - Compact Design */
@@ -45,22 +44,20 @@ body {
   display: flex;
   flex-direction: row;
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .content {
   flex: 3;
   padding: 1rem;
-  overflow-y: auto;
-  max-height: calc(
-    100vh - 70px
-  ); /* Ensure the content area is scrollable if content overflows */
+  overflow-y: hidden;
+   /* Ensure the content area is scrollable if content overflows */
 }
 
 .sidebar {
   flex: 1;
   padding: 1rem;
-  overflow-y: hidden;
+  overflow-y: auto;
   margin-top: 20px;
   max-height: calc(
     100vh - 70px
@@ -153,6 +150,7 @@ app-category-selector {
 app-category-selector {
   margin-top: 50px;
 }
+
 /* Responsive Adjustments */
 @media (max-width: 700px) {
   .toolbar-container {
@@ -211,18 +209,23 @@ app-category-selector {
     justify-content: center;
   }
   .content-wrapper {
-    flex-direction: column;
+    flex-direction: row;
   }
   .sidebar {
     margin-top: 0;
     padding-top:0px;
-    max-height: fit-content;
+    max-height: none;
     overflow-y:visible;
   }
-  .content {
+  /* .content {
     margin-top: 0;
     max-height:fit-content;
     overflow-y: visible;
     padding-bottom:0px;
+  } */
+  .content {
+    margin-top: 0;
+    max-height: calc(100vh - 70px); /* Ensure the content area is scrollable if content overflows */
+    overflow-y: auto; /* Ensure the content area is scrollable if content overflows */
   }
 }

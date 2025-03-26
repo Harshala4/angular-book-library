@@ -3,14 +3,21 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
+  EventEmitter,
   inject,
   OnInit,
+  Output,
   ViewChild,
 } from '@angular/core';
 import { Table, TableModule } from 'primeng/table';
 import { BookService } from '../services/book.service';
 import { Store, select } from '@ngrx/store';
-import { loadBooks, setBooksFromLocalStorage } from '../state/book.actions';
+import {
+  addBook,
+  editBook,
+  loadBooks,
+  setBooksFromLocalStorage,
+} from '../state/book.actions';
 import { filter, map, Observable, of, take } from 'rxjs';
 import { BookState } from '../state/book.reducer';
 import { ButtonModule } from 'primeng/button';
@@ -28,6 +35,7 @@ import { BookDoc } from '../models/book.model';
 import { CategorySelectorComponent } from '../category-selector/category-selector.component';
 import { CatChartComponent } from '../category-selector/cat-chart/cat-chart.component';
 import { HttpClient } from '@angular/common/http';
+import { HeaderComponent } from "../header/header.component";
 
 interface Column {
   field: string;
@@ -58,7 +66,8 @@ interface Status {
     BookFormComponent,
     CategorySelectorComponent,
     CatChartComponent,
-  ],
+    HeaderComponent
+],
   providers: [MessageService, ConfirmationService],
   templateUrl: './book-list.component.html',
   styleUrl: './book-list.component.css',
@@ -72,13 +81,12 @@ export class BookListComponent implements OnInit {
   statuses: Status[] = [];
   books$: Observable<BookDoc[]> = of([]);
   loading$!: Observable<boolean>;
-  // error$!: Observable<any>;
   error$!: unknown;
   selectedBook: BookDoc | null = null;
   isEditMode: boolean = false;
+  totalBooks: number = 0;
+  @Output() totalBooksChange = new EventEmitter<number>();
 
-  // private route = inject(ActivatedRoute);
-  // private router = inject(Router);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
@@ -111,13 +119,17 @@ export class BookListComponent implements OnInit {
       { field: 'title', header: 'Title' },
       { field: 'author_name', header: 'Author Name' },
       { field: 'first_publish_year', header: 'Year' },
-      // { field: 'inventoryStatus', header: 'Status' },
     ];
 
     this.statuses = [
       { label: 'AVAILABLE', value: 'available' },
       { label: 'CHECKED OUT', value: 'Checked Out' },
     ];
+
+    this.books$.subscribe((books) => {
+      this.totalBooks = books.length;
+      this.totalBooksChange.emit(this.totalBooks);
+    });
   }
 
   /**
@@ -147,8 +159,8 @@ export class BookListComponent implements OnInit {
       this.store.dispatch(setBooksFromLocalStorage({ books: this.books }));
 
       /** Explain the reasoning behind this. */
-      this.cd.detectChanges();// Trigger change detection
-      this.updateTable();//Update the table and create a copy of the books array
+      this.cd.detectChanges(); // Trigger change detection
+      this.updateTable(); //Update the table and create a copy of the books array
       this.calculateBorrowedAndAvailableTrends([this.category]);
     } else {
       /** Maintain a sequence of events. */
@@ -222,6 +234,11 @@ export class BookListComponent implements OnInit {
         });
         this.updateTable();
         this.calculateBorrowedAndAvailableTrends([this.category]);
+
+        this.bookService.updateTotalBooks(this.books.length);
+        setTimeout(() => {  // ✅ Ensures the latest value is captured
+          this.bookService.totalBooks$.subscribe(count => console.log('After delete:', count));
+        });
       },
     });
   }
@@ -249,6 +266,13 @@ export class BookListComponent implements OnInit {
         });
         this.updateTable();
         this.calculateBorrowedAndAvailableTrends([this.category]);
+
+        this.bookService.updateTotalBooks(this.books.length);
+        setTimeout(() => {  // ✅ Ensures the latest value is captured
+          this.bookService.totalBooks$.subscribe(count => console.log('After delete:', count));
+        });
+
+
       },
     });
   }
@@ -301,9 +325,9 @@ export class BookListComponent implements OnInit {
   //   // console.log(this.selectedBook);
   // }
 
-  closeBookDetail() {
-    this.selectedBook = null;
-  }
+  // closeBookDetail() {
+  //   this.selectedBook = null;
+  // }
 
   openNew() {
     this.selectedBook = null; // Reset form for new book
@@ -346,8 +370,22 @@ export class BookListComponent implements OnInit {
 
     if (this.isEditMode && index !== -1) {
       this.books[index] = book;
+      this.store.dispatch(editBook({ book }));
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Book Updated',
+        life: 3000,
+      });
     } else {
       this.books.push(book);
+      this.store.dispatch(addBook({ book }));
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Book Added',
+        life: 3000,
+      });
     }
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.cd.detectChanges();
@@ -356,6 +394,8 @@ export class BookListComponent implements OnInit {
 
     this.displayDialog = false;
     this.editDialog = false;
+    console.log(this.books.length);
+    this.bookService.updateTotalBooks(this.books.length);
   }
 
   updateTable() {
@@ -409,4 +449,9 @@ export class BookListComponent implements OnInit {
     localStorage.setItem('borrowed_trends', JSON.stringify(borrowedTrends));
     localStorage.setItem('available_trends', JSON.stringify(availableTrends));
   }
+
+  // onCategorySelected(category: string) {
+  //   this.category = category;
+  //   this.loadBooksFromLocalStorage();
+  // }
 }

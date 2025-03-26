@@ -19,11 +19,6 @@ export interface AppState {
   books: BookDoc[];
 }
 
-// export const bookReducer = createReducer(
-//   initialState,
-//   on(BookActions.loadBooksSuccess, (state, { books }) => ({ ...state, books })),
-//   on(BookActions.loadBooksFailure, (state, { error }) => ({ ...state, error }))
-// );
 export const bookReducer = createReducer(
   initialState,
   on(loadBooks, (state) => ({
@@ -47,5 +42,15 @@ export const bookReducer = createReducer(
     books,
     loading: false,
     error: null,
+  })),
+  on(BookActions.addBook, (state, { book }) => ({
+    ...state,
+    books: [...state.books, book],
+  })),
+  on(BookActions.editBook, (state, { book }) => ({
+    ...state,
+    books: state.books.map((b) =>
+      b.author_key === book.author_key ? book : b
+    ),
   }))
 );
