@@ -16,7 +16,7 @@ import { ChartOptions } from 'chart.js';
 interface Book {
   title: string;
   category: string;
-  inventoryStatus: 'available' | 'Checked Out';
+  inventoryStatus: 'Available' | 'Checked Out';
 }
 
 @Component({

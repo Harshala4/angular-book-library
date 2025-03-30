@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-// import { ActivatedRoute, Router } from '@angular/router';
 import {
   ChangeDetectorRef,
   Component,
@@ -35,7 +34,9 @@ import { BookDoc } from '../models/book.model';
 import { CategorySelectorComponent } from '../category-selector/category-selector.component';
 import { CatChartComponent } from '../category-selector/cat-chart/cat-chart.component';
 import { HttpClient } from '@angular/common/http';
-import { HeaderComponent } from "../header/header.component";
+import { HeaderComponent } from '../header/header.component';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 interface Column {
   field: string;
@@ -66,17 +67,20 @@ interface Status {
     BookFormComponent,
     CategorySelectorComponent,
     CatChartComponent,
-    HeaderComponent
-],
+    HeaderComponent,
+    ProgressSpinnerModule,
+  ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './book-list.component.html',
   styleUrl: './book-list.component.css',
 })
 export class BookListComponent implements OnInit {
+  loading: boolean = false;
   @ViewChild('dt') dt!: Table;
   cols!: Column[];
   selectedBooks: BookDoc[] = [];
   books: BookDoc[] = [];
+  tableBooks: BookDoc[] = [];
   category: string = '';
   statuses: Status[] = [];
   books$: Observable<BookDoc[]> = of([]);
@@ -107,12 +111,16 @@ export class BookListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // this.category = this.route.snapshot.paramMap.get('category')!;
     console.log('Category:', this.category);
-    this.loadBooksFromLocalStorage();
-    this.loadCategoriesAndCalculateBorrowedTrends();
-
+    // this.loadBooksFromLocalStorage();
+    // this.loadCategoriesAndCalculateBorrowedTrends();
     // this.store.dispatch(loadBooks({ category: this.category }));
+    if (this.category && this.category.trim() !== '') {
+      this.loadBooksFromLocalStorage();
+      this.loadCategoriesAndCalculateBorrowedTrends();
+    } else {
+      console.warn('Category is not set. Skipping initial book loading.');
+    }
 
     this.cols = [
       { field: 'author_key', header: 'Author Key' },
@@ -122,8 +130,8 @@ export class BookListComponent implements OnInit {
     ];
 
     this.statuses = [
-      { label: 'AVAILABLE', value: 'available' },
-      { label: 'CHECKED OUT', value: 'Checked Out' },
+      { label: 'Available', value: 'Available' },
+      { label: 'Checked Oot', value: 'Checked Out' },
     ];
 
     this.books$.subscribe((books) => {
@@ -138,78 +146,109 @@ export class BookListComponent implements OnInit {
    */
 
   loadBooksFromLocalStorage(): void {
-    // const storageKey = `books_${this.category}`;
-    const storedBooks = JSON.parse(
-      localStorage.getItem(`books_${this.category}`) || 'null'
-    );
-    if (storedBooks) {
-      // this.books = JSON.parse(storedBooks || 'null');
-      this.books = storedBooks.map((book: BookDoc) => {
-        if (!book.inventoryStatus) {
-          book.inventoryStatus = 'available'; // or 'InStock', etc.
-        }
-        return book;
-      });
-      console.log(
-        'Books from local storage:',
-        `books_${this.category}`,
-        this.books
-      );
-      // refactor the method name to store data in NgRx Store. storeBooks:
+    if (!this.category || this.category.trim() === '') {
+      console.warn('Category is not set. Skipping local storage operations.');
+      return; // Exit the method if the category is invalid
+    }
+
+    console.log('Loading started...');
+    this.loading = true;
+
+    const storageKey = `books_${this.category}`;
+    let storedBooks: BookDoc[] = [];
+
+    try {
+      const rawData = localStorage.getItem(storageKey);
+      storedBooks = rawData ? JSON.parse(rawData) : [];
+
+      if (!Array.isArray(storedBooks)) {
+        console.error(
+          `Invalid data in localStorage for ${storageKey}:`,
+          rawData
+        );
+        storedBooks = [];
+      }
+    } catch (error) {
+      console.error(`Error parsing localStorage for ${storageKey}:`, error);
+      storedBooks = [];
+    }
+
+    if (storedBooks.length > 0) {
+      this.books = storedBooks.map((book) => ({
+        ...book,
+        inventoryStatus: book.inventoryStatus || 'Available',
+      }));
+
+      this.tableBooks = [...this.books];
+
+      console.log(`Books from local storage (${storageKey}):`, this.books);
+
+      // Store books in NgRx Store
       this.store.dispatch(setBooksFromLocalStorage({ books: this.books }));
 
-      /** Explain the reasoning behind this. */
-      this.cd.detectChanges(); // Trigger change detection
-      this.updateTable(); //Update the table and create a copy of the books array
+      this.cd.detectChanges(); // Ensure UI updates
+      this.updateTable();
       this.calculateBorrowedAndAvailableTrends([this.category]);
+      this.loading = false;
+      console.log('Loading finished.');
     } else {
-      /** Maintain a sequence of events. */
+      // If no books in local storage, fetch from store
       this.books = [];
+      this.tableBooks = [];
       this.store.dispatch(loadBooks({ category: this.category }));
-      // localStorage.setItem('books', JSON.stringify(this.books$));
 
       this.books$
         .pipe(
-          take(2), // Ensure only one subscription execution per category change
-          filter(() => this.category !== '') // Prevent execution if category is null
+          take(2), // Ensure single execution
+          filter(() => !!this.category), // Ensure category is valid
+          distinctUntilChanged() // Prevent duplicate emissions
         )
-        .subscribe((books) => {
-          if (this.category) {
-            const scopedbooks = books.map((book) => ({
+        .subscribe({
+          next: (books) => {
+            const scopedBooks = books.map((book) => ({
               ...book,
-              inventoryStatus: book.inventoryStatus || 'available',
+              inventoryStatus: book.inventoryStatus || 'Available',
             }));
 
-            this.books = scopedbooks;
-            console.log(
-              'Books from store:',
-              `books_${this.category}`,
-              scopedbooks
-            );
-            localStorage.setItem(
-              `books_${this.category}`,
-              JSON.stringify(scopedbooks)
-            );
+            this.books = scopedBooks;
+            this.tableBooks = [...this.books];
+            console.log(`Books from store (${storageKey}):`, scopedBooks);
+            localStorage.setItem(storageKey, JSON.stringify(scopedBooks));
+
             this.cd.detectChanges();
             this.updateTable();
             this.calculateBorrowedAndAvailableTrends([this.category]);
-          }
+            this.loading = false;
+            console.log('Loading finished.');
+          },
+          error: (err) => {
+            console.error(`Error loading books from store:`, err);
+            this.loading = false; // Stop loading on error
+          },
         });
     }
   }
 
   onCategoryChange(category: string) {
+    if (!category || category.trim() === '') {
+      console.warn('Invalid category selected. Skipping book loading.');
+      return;
+    }
+
+    this.loading = true;
+    this.books = [];
+    this.tableBooks = [];
     this.category = category;
+
+    this.cd.detectChanges();
+
     this.loadBooksFromLocalStorage();
     this.calculateBorrowedAndAvailableTrends([this.category]);
   }
 
-  /**
-   * Change Yes and No to actual actions.
-   */
   deleteSelectedBooks() {
     this.confirmationService.confirm({
-      message: 'Are you sure you want to delete the selected books?',
+      message: 'Are you sure you want to delete selected books?',
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
@@ -232,12 +271,18 @@ export class BookListComponent implements OnInit {
           detail: 'Books Deleted',
           life: 3000,
         });
+        
+        this.tableBooks = [...this.books];
+
         this.updateTable();
         this.calculateBorrowedAndAvailableTrends([this.category]);
 
         this.bookService.updateTotalBooks(this.books.length);
-        setTimeout(() => {  // ✅ Ensures the latest value is captured
-          this.bookService.totalBooks$.subscribe(count => console.log('After delete:', count));
+        setTimeout(() => {
+          // ✅ Ensures the latest value is captured
+          this.bookService.totalBooks$.subscribe((count) =>
+            console.log('After delete:', count)
+          );
         });
       },
     });
@@ -264,22 +309,24 @@ export class BookListComponent implements OnInit {
           detail: 'Book Deleted',
           life: 3000,
         });
+        this.tableBooks = [...this.books];
         this.updateTable();
         this.calculateBorrowedAndAvailableTrends([this.category]);
 
         this.bookService.updateTotalBooks(this.books.length);
-        setTimeout(() => {  // ✅ Ensures the latest value is captured
-          this.bookService.totalBooks$.subscribe(count => console.log('After delete:', count));
+        setTimeout(() => {
+          // ✅ Ensures the latest value is captured
+          this.bookService.totalBooks$.subscribe((count) =>
+            console.log('After delete:', count)
+          );
         });
-
-
       },
     });
   }
 
   getSeverity(status: string) {
     switch (status) {
-      case 'available':
+      case 'Available':
         return 'success';
       case 'Checked Out':
         return 'danger';
@@ -307,12 +354,18 @@ export class BookListComponent implements OnInit {
     const updatedBook = {
       ...book,
       inventoryStatus:
-        book.inventoryStatus === 'available' ? 'Checked Out' : 'available',
+        book.inventoryStatus === 'Available' ? 'Checked Out' : 'Available',
     };
 
     const index = this.books.findIndex((b) => b.author_key === book.author_key);
     if (index !== -1) {
-      this.books[index] = updatedBook;
+      // this.books[index] = updatedBook;
+      this.books = [
+        ...this.books.slice(0, index),
+        updatedBook,
+        ...this.books.slice(index + 1),
+      ];
+      this.tableBooks = [...this.books];
     }
 
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
@@ -320,37 +373,18 @@ export class BookListComponent implements OnInit {
     this.calculateBorrowedAndAvailableTrends([this.category]);
   }
 
-  // bookDetail(book: BookDoc) {
-  //   this.selectedBook = book;
-  //   // console.log(this.selectedBook);
-  // }
-
-  // closeBookDetail() {
-  //   this.selectedBook = null;
-  // }
-
   openNew() {
     this.selectedBook = null; // Reset form for new book
     this.isEditMode = false;
     this.displayDialog = true;
     this.editDialog = false;
     console.log('ADD');
-    // this.router.navigate(['/add-book'], {
-    //   state: { action: 'new', category: this.category },
-    // });
   }
   editBook(book: BookDoc) {
     this.isEditMode = true;
     this.selectedBook = { ...book };
-    // this.bookForm.patchValue(book); // Prepopulate the form with the book's data
     this.editDialog = true;
     this.displayDialog = false;
-    // const authorKey = Array.isArray(book.author_key)
-    //   ? book.author_key[0]
-    //   : book.author_key;
-    // this.router.navigate(['/edit-book', authorKey], {
-    //   state: { action: 'edit', book, category: this.category },
-    // });
   }
 
   onCancelDialog() {
@@ -369,7 +403,12 @@ export class BookListComponent implements OnInit {
     });
 
     if (this.isEditMode && index !== -1) {
-      this.books[index] = book;
+      // this.books[index] = book;
+      this.books = [
+        ...this.books.slice(0, index),
+        { ...book },
+        ...this.books.slice(index + 1),
+      ];
       this.store.dispatch(editBook({ book }));
       this.messageService.add({
         severity: 'success',
@@ -378,7 +417,8 @@ export class BookListComponent implements OnInit {
         life: 3000,
       });
     } else {
-      this.books.push(book);
+      // this.books.push(book);
+      this.books = [...this.books, { ...book }];
       this.store.dispatch(addBook({ book }));
       this.messageService.add({
         severity: 'success',
@@ -387,6 +427,8 @@ export class BookListComponent implements OnInit {
         life: 3000,
       });
     }
+    this.tableBooks = [...this.books];
+
     localStorage.setItem(`books_${this.category}`, JSON.stringify(this.books));
     this.cd.detectChanges();
     this.updateTable();
@@ -403,10 +445,6 @@ export class BookListComponent implements OnInit {
     this.books = [...this.books];
     this.cd.detectChanges();
   }
-
-  // onChange() {
-  //   this.router.navigate(['categories']);
-  // }
 
   borrowedBooksByCategory: { [key: string]: number } = {};
 
@@ -449,9 +487,4 @@ export class BookListComponent implements OnInit {
     localStorage.setItem('borrowed_trends', JSON.stringify(borrowedTrends));
     localStorage.setItem('available_trends', JSON.stringify(availableTrends));
   }
-
-  // onCategorySelected(category: string) {
-  //   this.category = category;
-  //   this.loadBooksFromLocalStorage();
-  // }
 }

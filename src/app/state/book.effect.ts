@@ -21,7 +21,7 @@ export class BookEffects {
           const books: BookDoc[] = JSON.parse(storedBooks || 'null');
           const updatedBooks = books.map((book: BookDoc) => ({
             ...book,
-            inventoryStatus: book.inventoryStatus || 'available',
+            inventoryStatus: book.inventoryStatus || 'Available',
           }));
           // You might filter by category if needed, or just return all
           return of(loadBooksSuccess({ books: updatedBooks }));
@@ -34,7 +34,7 @@ export class BookEffects {
                 author_name: doc.author_name,
                 first_publish_year: doc.first_publish_year,
                 title: doc.title,
-                inventoryStatus: 'available',
+                inventoryStatus: 'Available',
                 subtitle: doc.subtitle,
               }));
               localStorage.setItem(

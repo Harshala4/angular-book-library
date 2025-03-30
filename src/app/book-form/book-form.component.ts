@@ -16,9 +16,8 @@ import { BookService } from '../services/book.service';
 import { Store } from '@ngrx/store';
 import { BookDoc } from '../models/book.model';
 import { AppState } from '../state/book.reducer';
-import {FloatLabelModule} from 'primeng/floatlabel';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
-
 
 @Component({
   standalone: true,
@@ -55,8 +54,8 @@ export class BookFormComponent implements OnInit {
   category: string | null = null;
 
   inventoryOptions = [
-    { label: 'AVAILABLE', value: 'available' },
-    { label: 'CHECKED OUT', value: 'Checked Out' },
+    { label: 'Available', value: 'Available' },
+    { label: 'Checked Out', value: 'Checked Out' },
   ];
 
   submitted: boolean = false;
@@ -80,29 +79,59 @@ export class BookFormComponent implements OnInit {
         Validators.required,
       ],
       author_key: [this.book?.author_key || '', Validators.required],
-      inventoryStatus: [this.book?.inventoryStatus || 'available'],
+      inventoryStatus: [this.book?.inventoryStatus || 'Available'],
       subtitle: [this.book?.subtitle || ''],
     });
   }
 
   ngOnInit() {
-    
     this.checkDialogVisibility();
+
+    this.bookForm.get('title')?.valueChanges.subscribe((value) => {
+      if (typeof value === 'string' && value.startsWith(' ')) {
+        this.bookForm
+          .get('title')
+          ?.setValue(value.trimStart(), { emitEvent: false });
+      }
+    });
+
+    // Prevent leading spaces in the 'author_name' field
+    this.bookForm.get('author_name')?.valueChanges.subscribe((value) => {
+      if (typeof value === 'string' && value.startsWith(' ')) {
+        this.bookForm
+          .get('author_name')
+          ?.setValue(value.trimStart(), { emitEvent: false });
+      }
+    });
+
+    // Prevent leading spaces in the 'author_key' field
+    this.bookForm.get('author_key')?.valueChanges.subscribe((value) => {
+      if (typeof value === 'string' && value.startsWith(' ')) {
+        this.bookForm
+          .get('author_key')
+          ?.setValue(value.trimStart(), { emitEvent: false });
+      }
+    });
     if (this.bookId) {
       if (this.book) {
         this.bookForm.patchValue(this.book);
-
-       
       }
     }
   }
 
   ngOnChanges() {
     this.checkDialogVisibility();
-  
+
     if (this.book) {
-      this.bookForm.patchValue(this.book);
-     
+      this.bookForm.patchValue({
+        ...this.book,
+        author_name: Array.isArray(this.book.author_name)
+          ? this.book.author_name[0]
+          : this.book.author_name,
+        author_key: Array.isArray(this.book.author_key)
+          ? this.book.author_key[0]
+          : this.book.author_key,
+      });
     } else {
       this.bookForm.reset({
         title: '',
@@ -110,42 +139,56 @@ export class BookFormComponent implements OnInit {
         author_name: '',
         first_publish_year: '',
         author_key: '',
-        inventoryStatus: 'available'
+        inventoryStatus: 'Available',
       });
     }
   }
-  
 
   onSave(): void {
-    
     if (this.bookForm.valid) {
       const book = this.bookForm.value;
-  
+
+      book.title =
+        typeof book.title === 'string' ? book.title.trim() : book.title;
+      book.author_name =
+        typeof book.author_name === 'string'
+          ? book.author_name.trim()
+          : book.author_name;
+      book.author_key =
+        typeof book.author_key === 'string'
+          ? book.author_key.trim()
+          : book.author_key;
+
       book.category = this.category;
-  
+
       book.author_key = Array.isArray(book.author_key)
         ? book.author_key
         : [book.author_key];
-  
+
       book.author_name = Array.isArray(book.author_name)
         ? book.author_name
         : [book.author_name];
-  
-      if (typeof book.inventoryStatus === 'object' && book.inventoryStatus.value) {
+
+      if (
+        typeof book.inventoryStatus === 'object' &&
+        book.inventoryStatus.value
+      ) {
         book.inventoryStatus = book.inventoryStatus.value;
       }
 
       this.save.emit(book);
       this.displayDialog = false;
       this.editDialog = false;
-      this.visible=false;
+      this.visible = false;
     }
   }
-  
 
   markTouched(field: string) {
     const control = this.bookForm.get(field);
     if (control) {
+      if (typeof control.value === 'string') {
+        control.setValue(control.value.trim());
+      }
       control.markAsTouched();
       control.markAsDirty();
     }

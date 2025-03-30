@@ -1,51 +1,79 @@
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
 .container {
   display: flex;
-  flex-direction:column;
+  flex-direction: column;
   height: 100vh; /* Ensure the container takes the full height of the viewport */
   overflow-x: auto;
-  overflow:hidden;
+  overflow: hidden;
 }
-
-/* Make toolbar flexible */
+/* Ensure toolbar takes full width */
 p-toolbar {
-  flex: 0 0 auto; /* Fixed height for toolbar */
   width: 100%;
 }
 
-/* Flexbox for Layout */
+/* Main toolbar layout */
 .toolbar-content {
   display: flex;
   align-items: center;
-  flex-wrap: wrap; /* Allows wrapping on smaller screens */
   gap: 8px;
-  height: 30px;
-  align-content: center;
+  flex-wrap: nowrap; /* Prevents wrapping */
+  width: 100%; /* Ensure it takes full space */
+  height: 40px;
 }
 
-/* Button Group */
-.toolbar-buttons {
+/* Make toolbar items take full available width */
+.toolbar-filter-wrapper {
+  flex-grow: 1; /* Allows it to expand */
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  max-width: 100%;
 }
 
-/* Filters (Dropdown + Search) */
+/* Category Selector & Search occupy max available space */
 .toolbar-filters {
-  display:flex;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-grow: 1; /* Allows expansion */
+  flex-shrink: 1;
   gap: 8px;
-  flex-wrap:wrap;
   align-items: center;
+  width: 100%;
   min-width: 280px;
 }
 
-/* Search Box Adjustments */
+/* Make search box stretch */
 .search-box {
-  width: auto;
-  min-width: 100px;
-  flex-grow: 0; /* Adjusts based on available space */
+  flex-grow: 1; /* Expands dynamically */
+  flex-shrink: 1;
+  min-width: 600px;
+  max-width: none;
+  width: 100%;
 }
+
+.search-box input {
+  width: 100%;
+}
+
 app-category-selector {
   margin-top: 50px;
+}
+
+/* Ensure buttons stay together without shifting */
+.toolbar-buttons-wrapper {
+  display: flex;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.toolbar-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap; /* Allows wrapping if needed */
+  justify-content: flex-start; /* Ensures buttons stay inline */
 }
 
 .content-wrapper {
@@ -59,8 +87,8 @@ app-category-selector {
   flex: 3;
   /* padding: 1rem; */
   overflow-y: auto;
-  
-   /* Ensure the content area is scrollable if content overflows */
+
+  /* Ensure the content area is scrollable if content overflows */
 }
 
 .sidebar {
@@ -86,45 +114,13 @@ p-toolbar {
 .justify-between {
   justify-content: space-between;
 }
-/* Responsive Adjustments */
-@media (max-width: 700px) {
-  .toolbar-content{
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    align-items: flex-start;
-    /* align-content: baseline; */
-    gap: 0px;
-    height: fit-content;
-    margin-top: -20px;
-    padding-bottom: 50px;
-  }
-  /* .toolbar-buttons {
-    justify-content: center;
-  } */
-  .content-wrapper {
-    flex-direction: row;
-  }
-  .sidebar {
-    margin-top: 20px;
-    max-height: none;
-    overflow-y:visible;
-    max-width:250px;
-  }
-  .content {
-    margin-top: 0;
-    max-height: calc(100vh - 70px); /* Ensure the content area is scrollable if content overflows */
-    overflow-y: auto; /* Ensure the content area is scrollable if content overflows */
-  }
-}
 
+/* Responsive Adjustments */
 @media (max-width: 900px) {
   .toolbar-content {
-    display: flex;
     flex-direction: column;
     width: 100%;
     align-items: flex-start;
-    /* align-content: baseline; */
     gap: 0px;
     height: fit-content;
     margin-top: -20px;
@@ -142,19 +138,53 @@ p-toolbar {
   }
 
   .toolbar-filters {
-    display: flex;
-    flex-direction: row;
-    /* justify-content: center; */
-    align-items: center;
-    width: 100%; 
+    flex-direction: column;
+    justify-content: left;
+    align-items: baseline;
+    width: 100%;
   }
+
   app-category-selector {
-    display: flex;
-    /* justify-content: center; */
     margin-top: 5px;
-    /* width: 100%; */
   }
+
   .search-box {
-    margin-top: -45px;
+    flex-grow: 1;
+    margin-bottom: 5px;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .toolbar-buttons {
+    margin-top: -40px;
+    margin-bottom: 50px;
+  }
+
+  .sidebar{
+    overflow: hidden;
   }
 }
+
+@media (max-width: 700px) {
+  .toolbar-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 10px;
+  }
+
+  .search-box {
+    width: 100%;
+    min-width: 400px;
+    flex-grow: 1; /* Adjusts based on available space */
+  }
+
+  .toolbar-buttons {
+    margin-top: -40px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+
