@@ -244,6 +244,7 @@ export class BookListComponent implements OnInit {
 
     this.loadBooksFromLocalStorage();
     this.calculateBorrowedAndAvailableTrends([this.category]);
+    this.bookService.updateTotalBooks(this.books.length);
   }
 
   deleteSelectedBooks() {
